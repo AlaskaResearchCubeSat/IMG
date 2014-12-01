@@ -12,7 +12,10 @@
 #include "SDlib.h"
 #include "Proxy_errors.h"
 #include "Adafruit_VC0706.h"
+#include "IMG_Events.h"
 
+// This is causing errors but I don't need it for now, so I'm just ignoring it
+#define busAddrSym 0
 
 //change the stored I2C address. this does not change the address for the I2C peripheral
 int addrCmd(char **argv,unsigned short argc){
@@ -259,11 +262,27 @@ int tvOnCmd(char **argv, unsigned short argc){
   printf("Video on\r\n\n");
 }
 
+
+int camOnCmd(char **argv, unsigned short argc){
+  printf("Turning camera on\r\n");
+  // Turn imager on
+  P7OUT=BIT0;
+  printf("Camera on\r\n\n");
+}
+
+int camOffCmd(char **argv, unsigned short argc){
+  printf("Turning camera off\r\n");
+  // Turn imager off
+  P7OUT=BIT1;
+  printf("Camera off\r\n\n");
+}
+
+
 //freezes the frame, keeps the picture in the camera buffer 
 int takePicCmd(char **argv, unsigned short argc){
-  //Adafruit_VC0706_setImageSize(VC0706_640x480);
+  Adafruit_VC0706_setImageSize(VC0706_640x480);
   printf("Taking a picture.. (Frame will freeze on video device)\r\n");
-  Adafruit_VC0706_takePicture();
+  //Adafruit_VC0706_takePicture();
   if(!Adafruit_VC0706_takePicture()){
     printf("Failed to take picture.\r\n");
   }
@@ -319,6 +338,27 @@ int printBuffCmd(char **argv,unsigned short argc){
   printf("\r\n Done. \r\n\n");
 }
 
+
+int takePicTask(char **argv,unsigned short argc)
+{
+  // Call the takepic event
+  ctl_events_set_clear(&IMG_events, IMG_EV_TAKEPIC,0);
+}
+
+int dumpPicTask(char **argv,unsigned short argc)
+{
+  // Call the load picture event
+  ctl_events_set_clear(&IMG_events, IMG_EV_LOADPIC,0);
+}
+int ping(char **argv,unsigned short argc)
+{
+  // Pong!
+  printf("Pong!\r\n");
+  
+}
+
+
+
 //table of commands with help
 const CMD_SPEC cmd_tbl[]={{"help"," [command]\r\n\t""get a list of commands or help on a spesific command.",helpCmd},
                          CTL_COMMANDS,ARC_COMMANDS,ERROR_COMMANDS,MMC_COMMANDS,
@@ -331,11 +371,16 @@ const CMD_SPEC cmd_tbl[]={{"help"," [command]\r\n\t""get a list of commands or h
                          //{"inc","n\r\n\t""Spam the terminal by printing numbers from 0 to n-1",incCmd},
                          {"tvoff","",tvOffCmd},
                          {"tvon","",tvOnCmd},
+                         {"camon","",camOnCmd},
+                         {"camoff","",camOffCmd},
                          {"imgsize","",imgSizeCmd},
                          {"takepic","",takePicCmd},
                          {"resume","",resumeVidCmd},
                          {"savepic","",savePicCmd}, 
                          {"pbuff","",printBuffCmd},
                          {"version", "", versionCmd},
+                         {"takepictask", "", takePicTask},
+                         {"loadpictask", "", dumpPicTask},
+                         {"ping", "", ping},
                          //end of list
                          {NULL,NULL,NULL}};

@@ -100,12 +100,13 @@ uint8_t Adafruit_VC0706_getImageSize(void) {
   return camerabuff[5];
 }
 
+// 11940 bytes is normal image size;
 boolean Adafruit_VC0706_setImageSize(uint8_t x) {
   uint8_t args[6] = {0x05, 0x04, 0x01, 0x00, 0x19, 0};
   args[5] = x;
 
   return Adafruit_VC0706_runCommand(VC0706_WRITE_DATA, args, sizeof(args), 5,true);
-}
+} 
 
 /****************** downsize image control */
 

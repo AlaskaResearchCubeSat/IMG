@@ -13,12 +13,13 @@
       <file file_name="Proxy_errors.h"/>
       <file file_name="../../Camera/BUS-async/Adafruit_VC0706.h"/>
       <file file_name="Adafruit_VC0706.c"/>
+      <file file_name="IMG_Events.h"/>
     </folder>
     <folder Name="System Files" file_name="">
       <file file_name="$(StudioDir)/ctl/source/threads.js"/>
     </folder>
   </project>
-  <configuration Name="MSP430 Debug" inherited_configurations="MSP430;Debug" linker_additional_files="Z:/Software/lib/BUSlib_Debug.hza;Z:/Software/lib/Error_printf_Debug.hza;Z:/Software/lib/termlib_Debug.hza;Z:/Software/lib/commandLib_Debug.hza;Z:/Software/lib/SD-lib_UCB1_Debug.hza;Z:/Software/lib/UART_UCA1_Debug.hza"/>
+  <configuration Name="MSP430 Debug" inherited_configurations="MSP430;Debug" linker_additional_files="Z:/Software/lib/BUSlib_Debug.hza;Z:/Software/lib/Error_SDcard_Debug.hza;Z:/Software/lib/termlib_Debug.hza;Z:/Software/lib/commandLib_Debug.hza;Z:/Software/lib/SD-lib_UCB1_Debug.hza;Z:/Software/lib/UART_UCA1_Debug.hza"/>
   <configuration Name="MSP430" Platform="MSP430" hidden="Yes"/>
   <configuration Name="Debug" build_debug_information="Yes" hidden="Yes"/>
   <configuration Name="MSP430 Release" inherited_configurations="MSP430;Release" linker_additional_files="Z:/Software/lib/BUSlib_Release.hza;Z:/Software/lib/Error_SDcard_Release.hza;Z:/Software/lib/termlib_Release.hza;Z:/Software/lib/commandLib_Release.hza;Z:/Software/lib/SD-lib_UCB1_Release.hza;Z:/Software/lib/UART_UCA1_Release.hza"/>
