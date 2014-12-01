@@ -8,11 +8,12 @@
 #include <SDlib.h>
 #include "timerA.h"
 #include <terminal.h>
+#include "Adafruit_VC0706.h"
 
 CTL_TASK_t tasks[3];
 
 //stacks for tasks
-unsigned stack1[1+300+1];          
+unsigned stack1[1+100+1];          
 unsigned stack2[1+600+1];
 unsigned stack3[1+350+1];   
 
@@ -70,7 +71,7 @@ void sub_events(void *p) __toplevel{
   int i;
   unsigned char buf[10],*ptr;
   extern unsigned char async_addr;
-  const TERM_SPEC async_term={"async Test Program",async_Getc};
+  const TERM_SPEC async_term={"IMG Test Program",async_Getc};
   for(;;){
     e=ctl_events_wait(CTL_EVENT_WAIT_ANY_EVENTS_WITH_AUTO_CLEAR,&SUB_events,SUB_EV_ALL|SUB_EV_ASYNC_OPEN|SUB_EV_ASYNC_CLOSE,CTL_TIMEOUT_NONE,0);
     if(e&SUB_EV_PWR_OFF){
@@ -110,23 +111,23 @@ void sub_events(void *p) __toplevel{
     if(e&SUB_EV_SPI_ERR_CRC){
       puts("SPI bad CRC\r");
     }
-    if(e&SUB_EV_ASYNC_OPEN){
+    /*if(e&SUB_EV_ASYNC_OPEN){
       //kill off the terminal
       //ctl_task_remove(&tasks[1]);
       //setup closed event
-      async_setup_close_event(&SUB_events,SUB_EV_ASYNC_CLOSE);
+      //async_setup_close_event(&SUB_events,SUB_EV_ASYNC_CLOSE);
       //print message
-      printf("Async Opened from 0x%02X\r\n",async_addr);
+      //printf("Async Opened from 0x%02X\r\n",async_addr);
       //setup UART terminal        
-      ctl_task_run(&tasks[1],BUS_PRI_NORMAL,terminal,(void*)&async_term,"terminal",sizeof(stack2)/sizeof(stack2[0])-2,stack2+1,0);
+      //ctl_task_run(&tasks[1],BUS_PRI_NORMAL,terminal,(void*)&async_term,"terminal",sizeof(stack2)/sizeof(stack2[0])-2,stack2+1,0);
       //async_close();
     }
     if(e&SUB_EV_ASYNC_CLOSE){
       //kill off async terminal
-      ctl_task_remove(&tasks[1]);
+      //ctl_task_remove(&tasks[1]);
       //setup UART terminal        
       //ctl_task_run(&tasks[1],2,terminal,"\rUart Terminal Started\r\n","terminal",sizeof(stack2)/sizeof(stack2[0])-2,stack2+1,0);
-    }
+    }*/
   }
 }
 
@@ -146,36 +147,29 @@ void async_wait_term(void *p) __toplevel{
 
 int main(void){
   unsigned char addr;
-  const TERM_SPEC async_term={"async Test Program",async_Getc};
+  const TERM_SPEC async_term={"IMG Test Program",async_Getc};
   //DO this first
   ARC_setup(); 
   
   //setup system specific peripherals
+  Adafruit_VC0706_init();
+  //Adafruit_VC0706_setImageSize(VC0706_640x480);
 
   //setup mmc interface
   mmcInit_msp();
  
-  
-  //setup P7 for LED's
-  P7OUT=0x00;
-  P7DIR=0xFF;
-  
+  //setup P7.0 for imager on/off
   P7OUT|=BIT0;
-
-  //setup P8 for output
-  P8OUT=0x00;
-  P8DIR=0xFF;
-  P8SEL=0x00;
+  P7DIR|=BIT0;
+  P7SEL&=~BIT0;
+  //setup P6 for LED's
+  P6OUT&=~0xF0;
+  P6DIR|= 0xF0;
   
-  //read address
-  addr=*((unsigned char*)0x01000);
-  //check if address is valid
-  if(addr&0x80){
-    //use 0x10 as default (not a subsystem address)
-    addr=0x10;
-  }
+  P6OUT|=BIT4;
+  
   //setup bus interface
-  initARCbus(addr);
+  initARCbus(BUS_ADDR_IMG);
 
   //initialize stacks
   memset(stack1,0xcd,sizeof(stack1));  // write known values into the stack
@@ -189,7 +183,8 @@ int main(void){
 
   //create tasks
   ctl_task_run(&tasks[0],BUS_PRI_LOW,cmd_parse,NULL,"cmd_parse",sizeof(stack1)/sizeof(stack1[0])-2,stack1+1,0);
- // ctl_task_run(&tasks[1],2,async_wait_term,(void*)&async_term,"terminal",sizeof(stack2)/sizeof(stack2[0])-2,stack2+1,0);
+  //ctl_task_run(&tasks[1],2,async_wait_term,(void*)&async_term,"terminal",sizeof(stack2)/sizeof(stack2[0])-2,stack2+1,0);
+  ctl_task_run(&tasks[1],2,terminal,(void*)&async_term,"terminal",sizeof(stack2)/sizeof(stack2[0])-2,stack2+1,0);
   ctl_task_run(&tasks[2],BUS_PRI_HIGH,sub_events,NULL,"sub_events",sizeof(stack3)/sizeof(stack3[0])-2,stack3+1,0);
   
   mainLoop();

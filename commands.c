@@ -9,7 +9,9 @@
 #include <UCA1_uart.h>
 #include <Error.h>
 #include <commandLib.h>
+#include "SDlib.h"
 #include "Proxy_errors.h"
+#include "Adafruit_VC0706.h"
 
 
 //change the stored I2C address. this does not change the address for the I2C peripheral
@@ -94,7 +96,7 @@ int printCmd(char **argv,unsigned short argc){
   }
   //setup packet 
   ptr=BUS_cmd_init(buff,6);
-  //coppy strings into buffer for sending
+  //copy strings into buffer for sending
   for(i=2,k=0;i<=argc && k<sizeof(buff);i++){
     j=0;
     while(argv[i][j]!=0){
@@ -183,8 +185,111 @@ int spamCmd(char **argv,unsigned short argc){
   //pause to let chars clear
   ctl_timeout_wait(ctl_get_current_time()+100);
   //print message
-  printf("\r\nSpaming complete %u chars sent\r\n",n);
+  printf("\r\nSpamming complete %u chars sent\r\n",n);
   return 0;
+}
+
+//the tvOff command, turns the video out 'off'
+int tvOffCmd(char **argv, unsigned short argc){
+  printf("Turning video off\r\n");
+  Adafruit_VC0706_TVoff();
+  printf("Video off\r\n\n");
+}
+
+int savePicCmd(char **argv, unsigned short argc){
+  uint32_t jpglen = Adafruit_VC0706_frameLength();
+  int writeCount = 0;
+  unsigned char *block;
+  int count = 0;
+  int nextBlock = 0;
+  printf("Storing a ");
+  printf("%lu", jpglen);
+  printf(" byte image.\r\n");
+  
+  if((mmc_is_init() == MMC_SUCCESS) && (jpglen != 0)){
+    block = BUS_get_buffer(CTL_TIMEOUT_NONE, 0);
+    while(jpglen > 0){
+      unsigned char* buffer;
+
+      int bytesToRead;
+      if (jpglen < 64){
+        bytesToRead = jpglen;
+      }
+      else{
+        bytesToRead = 64;
+      }
+      buffer = Adafruit_VC0706_readPicture(bytesToRead);
+      memcpy(block + count*64, buffer, 64); count++;
+      
+      if (count >= 8){
+        count = 0;
+        mmcWriteBlock(nextBlock++, block);
+      }
+      if(++writeCount >= 64){
+        printf(".");
+        writeCount = 0;
+      }
+      
+      jpglen -= bytesToRead;
+    }
+  if (count != 0){
+    mmcWriteBlock(nextBlock++, block);
+  }
+  BUS_free_buffer();
+  printf("\r\nDone writing image to SD card.\r\n");
+  printf("Memory blocks used: ");
+  printf("%i", (nextBlock-1));
+  printf("\r\n\n");
+
+  }
+  else if(mmc_is_init() != MMC_SUCCESS){
+    printf("Error: SD Card not initialized\r\n\n");
+    return -1;
+  }
+  else if(jpglen <= 0){
+    printf("Error: No image in buffer\r\n\n");
+    return -1;
+  }
+}
+
+//the tvOn command, turns the video output 'on'
+int tvOnCmd(char **argv, unsigned short argc){
+  printf("Turning video on\r\n");
+  Adafruit_VC0706_TVon();
+  printf("Video on\r\n\n");
+}
+
+//freezes the frame, keeps the picture in the camera buffer 
+int takePicCmd(char **argv, unsigned short argc){
+  //Adafruit_VC0706_setImageSize(VC0706_640x480);
+  printf("Taking a picture.. (Frame will freeze on video device)\r\n");
+  Adafruit_VC0706_takePicture();
+  if(!Adafruit_VC0706_takePicture()){
+    printf("Failed to take picture.\r\n");
+  }
+  else{
+    printf("Picture taken.\r\n\n");
+  }
+}
+
+//ask the camera how big the current picture is
+int imgSizeCmd(char **argv, unsigned short argc){
+  uint8_t imgsize = Adafruit_VC0706_getImageSize();
+  uint16_t jpglen = Adafruit_VC0706_frameLength();
+  printf("Image size: ");
+  if (imgsize == VC0706_640x480) printf("640x480\r\n");
+  if (imgsize == VC0706_320x240) printf("320x240\r\n");
+  if (imgsize == VC0706_160x120) printf("160x120\r\n"); 
+  printf("buffer contents size in bytes is: ");
+  printf("%u", jpglen);
+  printf("\r\n\n");
+}
+
+// resumes video feed to camera, picture data will no longer be available in the camera buffer
+int resumeVidCmd(char **argv, unsigned short argc){
+  printf("Resuming video..\r\n");
+  Adafruit_VC0706_resumeVideo();
+  printf("Video resumed.\r\n\n");
 }
 
 int incCmd(char **argv,unsigned short argc){
@@ -200,24 +305,37 @@ int incCmd(char **argv,unsigned short argc){
   //pause to let chars clear
   ctl_timeout_wait(ctl_get_current_time()+100);
   //print message
-  printf("\r\nSpaming complete\r\n%u chars printed\r\n",c);
+  printf("\r\nSpamming complete\r\n%u chars printed\r\n",c);
   return 0;
 }
 
-int replayCmd(char **argv,unsigned short argc){
-  error_log_replay();
-  return 0;
+int versionCmd(char **argv, unsigned short argc){
+  printf("Camera version: %s\r\n", Adafruit_VC0706_getVersion());
+}
+
+int printBuffCmd(char **argv,unsigned short argc){
+  printf("Printing camera buffer: \r\n");
+  Adafruit_VC0706_printBuff();
+  printf("\r\n Done. \r\n\n");
 }
 
 //table of commands with help
 const CMD_SPEC cmd_tbl[]={{"help"," [command]\r\n\t""get a list of commands or help on a spesific command.",helpCmd},
-                         CTL_COMMANDS,ARC_COMMANDS,ERROR_COMMANDS,
-                         {"addr"," [addr]\r\n\t""Get/Set I2C address.",addrCmd},
-                         {"print"," addr str1 [[str2] ... ]\r\n\t""Send a string to addr.",printCmd},
-                         {"tst"," addr len\r\n\t""Send test data to addr.",tstCmd},
-                         {"async","\r\n\t""Close async connection.",asyncCmd},
-                         {"exit","\r\n\t""Close async connection.",asyncCmd},
-                         {"spam","n\r\n\t""Spam the terminal with n chars",spamCmd},
-                         {"inc","n\r\n\t""Spam the by printing numbers from 0 to n-1",incCmd},
+                         CTL_COMMANDS,ARC_COMMANDS,ERROR_COMMANDS,MMC_COMMANDS,
+                         //{"addr"," [addr]\r\n\t""Get/Set I2C address.",addrCmd},
+                         //{"print"," addr str1 [[str2] ... ]\r\n\t""Send a string to addr.",printCmd},
+                         //{"tst"," addr len\r\n\t""Send test data to addr.",tstCmd},
+                         //{"async","\r\n\t""Close async connection.",asyncCmd},
+                         //{"exit","\r\n\t""Close async connection.",asyncCmd},
+                         //{"spam","n\r\n\t""Spam the terminal with n chars",spamCmd},
+                         //{"inc","n\r\n\t""Spam the terminal by printing numbers from 0 to n-1",incCmd},
+                         {"tvoff","",tvOffCmd},
+                         {"tvon","",tvOnCmd},
+                         {"imgsize","",imgSizeCmd},
+                         {"takepic","",takePicCmd},
+                         {"resume","",resumeVidCmd},
+                         {"savepic","",savePicCmd}, 
+                         {"pbuff","",printBuffCmd},
+                         {"version", "", versionCmd},
                          //end of list
                          {NULL,NULL,NULL}};
