@@ -158,9 +158,8 @@ void img_events(void *p0) __toplevel{
       // print message
       printf("Booting up imager\r\n");
 
-      // Turn imager on
-      P7OUT=BIT0;
-      LED_on(IMG_PWR_LED);
+      // Turn sensor on
+      sensor_on();
 
       Adafruit_VC0706_init();
       Adafruit_VC0706_TVon();
@@ -238,9 +237,8 @@ void img_events(void *p0) __toplevel{
               piclength = Adafruit_VC0706_frameLength();
 
               Adafruit_VC0706_TVoff();
-              // Turn imager off
-              P7OUT=BIT1;
-              LED_off(IMG_PWR_LED);
+              // Turn sensor off
+              sensor_on();
 
               printf("\n\rDone.\r\n");
             }

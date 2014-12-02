@@ -13,6 +13,7 @@
 #include "IMG_errors.h"
 #include "Adafruit_VC0706.h"
 #include "IMG_Events.h"
+#include "sensor.h"
 
 //the tvOff command, turns the video out 'off'
 int tvOffCmd(char **argv, unsigned short argc){
@@ -87,15 +88,15 @@ int tvOnCmd(char **argv, unsigned short argc){
 
 int camOnCmd(char **argv, unsigned short argc){
   printf("Turning camera on\r\n");
-  // Turn imager on
-  P7OUT=BIT0;
+  // Turn sensor on
+  sensor_on();
   printf("Camera on\r\n\n");
 }
 
 int camOffCmd(char **argv, unsigned short argc){
   printf("Turning camera off\r\n");
-  // Turn imager off
-  P7OUT=BIT1;
+  // Turn sensor off
+  sensor_off();
   printf("Camera off\r\n\n");
 }
 

@@ -4,16 +4,15 @@
 #include <string.h>
 #include <ctype.h>
 #include <ARCbus.h>
-#include <UCA1_uart.h>
 #include <SDlib.h>
 #include "timerA.h"
 #include <terminal.h>
-#include "Adafruit_VC0706.h"
 #include "IMG_Events.h"
 #include "Error.h"
 #include "IMG_errors.h"
 #include "IMG.h"
 #include "LED.h"
+#include "sensor.h"
 
 CTL_TASK_t tasks[4];
 
@@ -56,22 +55,11 @@ int main(void){
   // Resetting for some reason
   ARC_setup(); 
 
-  //setup UCA1 uart, may not be needed
-  UCA1_init_UART();
-  
-  //setup system specific peripherals
-  Adafruit_VC0706_init();
+  //setup image sensor
+  sensor_init();
 
   //setup mmc interface
   mmcInit_msp();
- 
-  //setup P7.0 for imager on/off
-  P7OUT=BIT0;
-  P7DIR=0xFF;
-  P7REN=0;
-  P7SEL=0;
-  // Set imager to off to start with (this will save power)
-  P7OUT=BIT1;
 
   //setup LED pins
   LED_init();
