@@ -28,9 +28,7 @@ int savePicCmd(char **argv, unsigned short argc){
   unsigned char *block;
   int count = 0;
   int nextBlock = 0;
-  printf("Storing a ");
-  printf("%lu", jpglen);
-  printf(" byte image.\r\n");
+  printf("Storing a %lu byte image.\r\n", jpglen);
   
   if((mmc_is_init() == MMC_SUCCESS) && (jpglen != 0)){
     block = BUS_get_buffer(CTL_TIMEOUT_NONE, 0);
@@ -62,10 +60,7 @@ int savePicCmd(char **argv, unsigned short argc){
     mmcWriteBlock(nextBlock++, block);
   }
   BUS_free_buffer();
-  printf("\r\nDone writing image to SD card.\r\n");
-  printf("Memory blocks used: ");
-  printf("%i", (nextBlock-1));
-  printf("\r\n\n");
+  printf("\r\nDone writing image to SD card.\r\n""Memory blocks used: %i\r\n",(nextBlock-1));
 
   }
   else if(mmc_is_init() != MMC_SUCCESS){
@@ -122,9 +117,7 @@ int imgSizeCmd(char **argv, unsigned short argc){
   if (imgsize == VC0706_640x480) printf("640x480\r\n");
   if (imgsize == VC0706_320x240) printf("320x240\r\n");
   if (imgsize == VC0706_160x120) printf("160x120\r\n"); 
-  printf("buffer contents size in bytes is: ");
-  printf("%u", jpglen);
-  printf("\r\n\n");
+  printf("buffer contents size in bytes is: %u\r\n\n", jpglen);
 }
 
 // resumes video feed to camera, picture data will no longer be available in the camera buffer
