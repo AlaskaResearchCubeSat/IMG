@@ -147,13 +147,13 @@ int printBuffCmd(char **argv,unsigned short argc){
 
 int takePicTask(char **argv,unsigned short argc)
 {
-  // Call the takepic event
+  //Trigger the takepic event
   ctl_events_set_clear(&IMG_events, IMG_EV_TAKEPIC,0);
 }
 
 int dumpPicTask(char **argv,unsigned short argc)
 {
-  // Call the load picture event
+  //Trigger the load picture event
   ctl_events_set_clear(&IMG_events, IMG_EV_LOADPIC,0);
 }
 
