@@ -14,6 +14,8 @@
       <file file_name="Adafruit_VC0706.c"/>
       <file file_name="IMG_Events.h"/>
       <file file_name="Adafruit_VC0706.h"/>
+      <file file_name="IMG.c"/>
+      <file file_name="IMG.h"/>
     </folder>
     <folder Name="System Files" file_name="">
       <file file_name="$(StudioDir)/ctl/source/threads.js"/>
