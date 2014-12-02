@@ -168,7 +168,7 @@ void img_events(void *p0) __toplevel{
   int j;
   int resp;
 
-  char *buffer=NULL;
+  unsigned char *buffer=NULL;
 
 
   pictureSlot = 0;
@@ -277,7 +277,7 @@ void img_events(void *p0) __toplevel{
         buffer=BUS_get_buffer(CTL_TIMEOUT_DELAY,10000);
         //read from SD card
         P6OUT^=BIT6;
-        resp=mmcReadBlock(i,(unsigned char*)buffer);
+        resp=mmcReadBlock(i,buffer);
 
         if(resp != MMC_SUCCESS)
         {
