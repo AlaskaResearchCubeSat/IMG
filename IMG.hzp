@@ -10,12 +10,12 @@
       <file file_name="commands.c"/>
       <file file_name="UC1int.c"/>
       <file file_name="Error_decode.c"/>
-      <file file_name="Proxy_errors.h"/>
       <file file_name="Adafruit_VC0706.c"/>
       <file file_name="IMG_Events.h"/>
       <file file_name="Adafruit_VC0706.h"/>
       <file file_name="IMG.c"/>
       <file file_name="IMG.h"/>
+      <file file_name="IMG_errors.h"/>
     </folder>
     <folder Name="System Files" file_name="">
       <file file_name="$(StudioDir)/ctl/source/threads.js"/>

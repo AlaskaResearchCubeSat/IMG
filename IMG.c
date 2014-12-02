@@ -11,7 +11,7 @@
 #include "Adafruit_VC0706.h"
 #include "IMG_Events.h"
 #include "Error.h"
-#include "Proxy_errors.h"
+#include "IMG_errors.h"
 
 CTL_EVENT_SET_t cmd_parse_evt;
 // Setup for imager events
@@ -169,81 +169,81 @@ void img_events(void *p0) __toplevel{
 
       if(!Adafruit_VC0706_takePicture()){
         report_error(ERR_LEV_CRITICAL,ERR_IMG,ERR_IMG_TAKEPIC, 0);
-        break;
-      }
+      }else{
+          printf("Saving\r\n");
+          // Initialize the SD card
+          resp=mmcInit_card();
+
+          if(resp != MMC_SUCCESS){
+            report_error(ERR_LEV_CRITICAL,ERR_IMG,ERR_IMG_SD_CARD_INIT,resp);
+          }else{
+
+              // Set nextblock
+              nextBlock = writePic * 100;
       
-      printf("Saving\r\n");
-      // Initialize the SD card
-      mmcInit_card();
+              // Store the image
+              piclength = Adafruit_VC0706_frameLength();
+              block = BUS_get_buffer(CTL_TIMEOUT_NONE, 0);
+              while(piclength > 0){
+                unsigned char* buffer;
 
-      if(mmc_is_init() != MMC_SUCCESS)
-      {
-        report_error(ERR_LEV_CRITICAL,ERR_IMG,ERR_IMG_SD_CARD_INIT, 0);
-      }
-
-      // Set nextblock
-      nextBlock = writePic * 100;
-      
-      // Store the image
-      piclength = Adafruit_VC0706_frameLength();
-      block = BUS_get_buffer(CTL_TIMEOUT_NONE, 0);
-      while(piclength > 0){
-        unsigned char* buffer;
-
-        int bytesToRead;
-        if (piclength < 64){
-          bytesToRead = piclength;
-        }
-        else{
-          bytesToRead = 64;
-        }
-        buffer = Adafruit_VC0706_readPicture(bytesToRead);
-        memcpy(block + count*64, buffer, 64); count++;
+                int bytesToRead;
+                if (piclength < 64){
+                  bytesToRead = piclength;
+                }
+                else{
+                  bytesToRead = 64;
+                }
+                buffer = Adafruit_VC0706_readPicture(bytesToRead);
+                memcpy(block + count*64, buffer, 64); count++;
     
-        if (count >= 8){
-          count = 0;
-          resp = mmcWriteBlock(nextBlock++, block);
-          if(resp != MMC_SUCCESS)
-          {
-            report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_WRITE, 0);
-          }
-        }
-        if(++writeCount >= 64){
-          printf(".");
-          writeCount = 0;
-        }
+                if (count >= 8){
+                  count = 0;
+                  resp = mmcWriteBlock(nextBlock++, block);
+                  if(resp != MMC_SUCCESS){
+                    report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_WRITE,resp);
+                    //error encountered, abort write
+                    break;
+                  }
+                }
+                if(++writeCount >= 64){
+                  printf(".");
+                  writeCount = 0;
+                }
       
-        piclength -= bytesToRead;
-      }
-      if (count != 0){
-        resp = mmcWriteBlock(nextBlock++, block);
-        if(resp != MMC_SUCCESS)
-        {
-          report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_WRITE, 0);
+                piclength -= bytesToRead;
+              }
+              //check if there are more bytes to write
+              if (count != 0 && resp == MMC_SUCCESS){
+                resp = mmcWriteBlock(nextBlock++, block);
+                if(resp != MMC_SUCCESS){
+                  report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_WRITE,resp);
+                }
+              }
+              // Reset the buffer to 0
+              for(i = 0; i < BUS_get_buffer_size(); i++)
+              {
+                block[i] = 0;
+              }
+              // Keep writing blocks until you have written 100 blocks total 
+              while(nextBlock % 100 != 0)
+              {
+                mmcWriteBlock(nextBlock++, block);
+              }
+              BUS_free_buffer();
+              // End storing image
+
+              // Save picture length
+              piclength = Adafruit_VC0706_frameLength();
+
+              Adafruit_VC0706_TVoff();
+              // Turn imager off
+              P7OUT=BIT1;
+              P6OUT^=BIT5;
+
+              printf("\n\rDone.\r\n");
+            }
         }
-      }
-      // Reset the buffer to 0
-      for(i = 0; i < BUS_get_buffer_size(); i++)
-      {
-        block[i] = 0;
-      }
-      // Keep writing blocks until you have written 100 blocks total 
-      while(nextBlock % 100 != 0)
-      {
-        mmcWriteBlock(nextBlock++, block);
-      }
-      BUS_free_buffer();
-      // End storing image
-
-      // Save picture length
-      piclength = Adafruit_VC0706_frameLength();
-
-      Adafruit_VC0706_TVoff();
-      // Turn imager off
-      P7OUT=BIT1;
-      P6OUT^=BIT5;
-
-      printf("\n\rDone.\r\n");
     }
     if(e&IMG_EV_LOADPIC){ // Load the picture from the SD card and send it through the bus
       //print message

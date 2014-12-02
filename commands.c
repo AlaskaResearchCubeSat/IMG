@@ -10,7 +10,7 @@
 #include <Error.h>
 #include <commandLib.h>
 #include "SDlib.h"
-#include "Proxy_errors.h"
+#include "IMG_errors.h"
 #include "Adafruit_VC0706.h"
 #include "IMG_Events.h"
 
