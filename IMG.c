@@ -24,16 +24,22 @@ unsigned char srcAddr;
 int SUB_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned short len){
   int i;
   int result = 0;
-  int time;
+  ticker time;
   switch(cmd){
 
 
     case 13:
-      BUS_set_alarm(0,((dat[0] << 24) + (dat[1] << 16) + (dat[2] << 8) + (dat[3] << 0)),&IMG_events,IMG_EV_TAKEPIC);
+        //read time
+        time =dat[3];
+        time|=((ticker)dat[2])<<8;
+        time|=((ticker)dat[1])<<16;
+        time|=((ticker)dat[0])<<24;
+        //set alarm
+        BUS_set_alarm(BUS_ALARM_0,time,&IMG_events,IMG_EV_TAKEPIC);
 
 
-      return RET_SUCCESS;
-    //Handle imager commands
+        return RET_SUCCESS;
+        //Handle imager commands
     case 14:
       // Set the picture slot to the sent value
       pictureSlot = dat[0];
