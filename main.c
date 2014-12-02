@@ -98,8 +98,6 @@ int main(void){
   stack4[0]=stack4[sizeof(stack4)/sizeof(stack4[0])-1]=0xfeed; // put marker values at the words before/after the stack
 
   //create tasks
-  // Use this task to handle commands
-  ctl_task_run(&tasks[0],BUS_PRI_LOW,cmd_parse,NULL,"cmd_parse",sizeof(stack1)/sizeof(stack1[0])-2,stack1+1,0);
   //ctl_task_run(&tasks[1],2,async_wait_term,(void*)&async_term,"terminal",sizeof(stack2)/sizeof(stack2[0])-2,stack2+1,0);
   ctl_task_run(&tasks[1],2,terminal,"IMG Test Program","terminal",sizeof(stack2)/sizeof(stack2[0])-2,stack2+1,0);
   ctl_task_run(&tasks[2],BUS_PRI_HIGH,sub_events,NULL,"sub_events",sizeof(stack3)/sizeof(stack3[0])-2,stack3+1,0);

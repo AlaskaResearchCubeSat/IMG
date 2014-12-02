@@ -17,7 +17,6 @@ CTL_EVENT_SET_t cmd_parse_evt;
 // Setup for imager events
 CTL_EVENT_SET_t IMG_events;
 
-unsigned char buffer[80];
 int pictureSlot;
 unsigned char srcAddr;
 
@@ -27,23 +26,7 @@ int SUB_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned
   int result = 0;
   int time;
   switch(cmd){
-    //Handle Print String Command
-    case 6:
-      //check packet length
-      if(len>sizeof(buffer)){
-        //return error
-        return ERR_PK_LEN;
-      }
-      //copy to temporary buffer
-      for(i=0;i<len;i++){
-        buffer[i]=dat[i];
-      }
-      //terminate string
-      buffer[i]=0;
-      //set event
-      ctl_events_set_clear(&cmd_parse_evt,0x01,0);
-      //Return Success
-      return RET_SUCCESS;
+
 
     case 13:
       BUS_set_alarm(0,((dat[0] << 24) + (dat[1] << 16) + (dat[2] << 8) + (dat[3] << 0)),&IMG_events,IMG_EV_TAKEPIC);
@@ -70,19 +53,6 @@ int SUB_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned
   }
   //Return Error
   return ERR_UNKNOWN_CMD;
-}
-
-void cmd_parse(void *p) __toplevel{
-  unsigned int e;
-  //init event
-  ctl_events_init(&cmd_parse_evt,0);
-  for(;;){
-    e=ctl_events_wait(CTL_EVENT_WAIT_ANY_EVENTS_WITH_AUTO_CLEAR,&cmd_parse_evt,0x01,CTL_TIMEOUT_NONE,0);
-    if(e&0x01){
-      //print message
-      printf("%s\r\n",buffer);
-    }
-  }
 }
 
 void sub_events(void *p) __toplevel{
