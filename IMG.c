@@ -82,10 +82,11 @@ void sub_events(void *p) __toplevel{
       //send status
       //puts("Sending status\r");
       //setup packet 
-      if(mmc_is_init() == MMC_SUCCESS)
+      if(mmc_is_init() == MMC_SUCCESS){
         buf[0] = 1;
-      else
+      }else{
         buf[0] = 0;
+      }
 
 
       // count pictures on SD card
