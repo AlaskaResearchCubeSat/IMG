@@ -13,6 +13,7 @@
 #include "Error.h"
 #include "IMG_errors.h"
 #include "LED.h"
+#include "sensor.h"
 
 CTL_EVENT_SET_t cmd_parse_evt;
 // Setup for imager events
