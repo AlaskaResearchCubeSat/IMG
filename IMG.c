@@ -17,7 +17,7 @@ CTL_EVENT_SET_t cmd_parse_evt;
 // Setup for imager events
 CTL_EVENT_SET_t IMG_events;
 
-int pictureSlot;
+int readPic,writePic;
 unsigned char srcAddr;
 
 //handle subsystem specific commands
@@ -42,14 +42,14 @@ int SUB_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned
         //Handle imager commands
     case 14:
       // Set the picture slot to the sent value
-      pictureSlot = dat[0];
+      writePic = dat[0];
       // Call the take picture event
       ctl_events_set_clear(&IMG_events,IMG_EV_TAKEPIC,0);
       //Return Success
       return RET_SUCCESS;
     case 15:
       // Set the picture slot to the sent value
-      pictureSlot = dat[0];
+      readPic = dat[0];
       srcAddr = src;
       // Call the load picture event
       ctl_events_set_clear(&IMG_events,IMG_EV_LOADPIC,0);
@@ -147,7 +147,8 @@ void img_events(void *p0) __toplevel{
   unsigned char *buffer=NULL;
 
 
-  pictureSlot = 0;
+  readPic = 0;
+  writePic = 0;
 
   for(;;){
     e=ctl_events_wait(CTL_EVENT_WAIT_ANY_EVENTS_WITH_AUTO_CLEAR,&IMG_events,IMG_EV_ALL,CTL_TIMEOUT_NONE,0);
@@ -180,7 +181,7 @@ void img_events(void *p0) __toplevel{
       }
 
       // Set nextblock
-      nextBlock = pictureSlot * 100;
+      nextBlock = writePic * 100;
       
       // Store the image
       piclength = Adafruit_VC0706_frameLength();
@@ -248,7 +249,7 @@ void img_events(void *p0) __toplevel{
       //mmcInit_card();
       printf("Loaded picture (%i blocks):\r\n", nextBlock-1);
       // Send 100 packets over.
-      for(i = (pictureSlot * 100); i < (pictureSlot * 100) + 2/*100*/; i++)
+      for(i = (readPic * 100); i < (readPic * 100) + 2/*100*/; i++)
       {
         buffer=BUS_get_buffer(CTL_TIMEOUT_DELAY,10000);
         //read from SD card
@@ -266,7 +267,7 @@ void img_events(void *p0) __toplevel{
         if(!(buffer[0] == 0 && buffer[1] == 0 && buffer[1] == 0 && buffer[2] == 0 && buffer[3] == 0 && buffer[5] == 0 && buffer[8] == 0 && buffer[13] == 0 && buffer[21] == 0))
         {
           // Send three extra bytes telling us where the picture came from, and any errors from the SD card
-          buffer[512] = pictureSlot;
+          buffer[512] = readPic;
           buffer[513]= i%100;
           buffer[514]= resp;
           // Transmit this block across SPI
