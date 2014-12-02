@@ -12,6 +12,7 @@
 #include "IMG_Events.h"
 #include "Error.h"
 #include "IMG_errors.h"
+#include "LED.h"
 
 CTL_EVENT_SET_t cmd_parse_evt;
 // Setup for imager events
@@ -159,7 +160,7 @@ void img_events(void *p0) __toplevel{
 
       // Turn imager on
       P7OUT=BIT0;
-      P6OUT^=BIT5;
+      LED_on(IMG_PWR_LED);
 
       Adafruit_VC0706_init();
       Adafruit_VC0706_TVon();
@@ -239,7 +240,7 @@ void img_events(void *p0) __toplevel{
               Adafruit_VC0706_TVoff();
               // Turn imager off
               P7OUT=BIT1;
-              P6OUT^=BIT5;
+              LED_off(IMG_PWR_LED);
 
               printf("\n\rDone.\r\n");
             }
@@ -254,7 +255,7 @@ void img_events(void *p0) __toplevel{
       // Send 100 packets over.
       for(i = (readPic * 100); i < (readPic * 100) + 2/*100*/; i++)
       {
-        P6OUT^=BIT6;
+        LED_toggle(IMG_READ_LED);
         //read from SD card
         resp=mmcReadBlock(i,buffer);
 
@@ -274,7 +275,7 @@ void img_events(void *p0) __toplevel{
                 report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_TX, resp);
               }
 
-              P6OUT^=BIT6;
+              LED_toggle(IMG_READ_LED);
               // Wait for a while, to let the packet fully transmit
               ctl_timeout_wait(ctl_get_current_time()+3000);
             }

@@ -16,6 +16,8 @@
       <file file_name="IMG.c"/>
       <file file_name="IMG.h"/>
       <file file_name="IMG_errors.h"/>
+      <file file_name="LED.c"/>
+      <file file_name="LED.h"/>
     </folder>
     <folder Name="System Files" file_name="">
       <file file_name="$(StudioDir)/ctl/source/threads.js"/>

@@ -13,6 +13,7 @@
 #include "Error.h"
 #include "IMG_errors.h"
 #include "IMG.h"
+#include "LED.h"
 
 CTL_TASK_t tasks[4];
 
@@ -72,14 +73,10 @@ int main(void){
   // Set imager to off to start with (this will save power)
   P7OUT=BIT1;
 
-
-
-  //setup P6 for LED's
-  P6OUT&=~0xF0;
-  P6DIR|= 0xF0;
-  P6OUT|=BIT4;
-
-  //P6OUT|=BIT7;
+  //setup LED pins
+  LED_init();
+  //turn on power LED
+  LED_on(PWR_LED);
   
   //setup bus interface
   initARCbus(BUS_ADDR_IMG);
