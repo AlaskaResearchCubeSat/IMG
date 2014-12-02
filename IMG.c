@@ -249,42 +249,39 @@ void img_events(void *p0) __toplevel{
       //print message
       //mmcInit_card();
       printf("Loaded picture (%i blocks):\r\n", nextBlock-1);
+      //reserve buffer
+      buffer=BUS_get_buffer(CTL_TIMEOUT_DELAY,10000);
       // Send 100 packets over.
       for(i = (readPic * 100); i < (readPic * 100) + 2/*100*/; i++)
       {
-        buffer=BUS_get_buffer(CTL_TIMEOUT_DELAY,10000);
-        //read from SD card
         P6OUT^=BIT6;
+        //read from SD card
         resp=mmcReadBlock(i,buffer);
 
-        if(resp != MMC_SUCCESS)
-        {
+        if(resp != MMC_SUCCESS){
           report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_READ, resp);
-        }
-        else
-        {
-          
-        // Check to make sure this isn't a null packet (all 0s)
-        if(!(buffer[0] == 0 && buffer[1] == 0 && buffer[1] == 0 && buffer[2] == 0 && buffer[3] == 0 && buffer[5] == 0 && buffer[8] == 0 && buffer[13] == 0 && buffer[21] == 0))
-        {
-          // Send three extra bytes telling us where the picture came from, and any errors from the SD card
-          buffer[512] = readPic;
-          buffer[513]= i%100;
-          buffer[514]= resp;
-          // Transmit this block across SPI
-          resp = BUS_SPI_txrx(srcAddr,buffer,NULL,512 + BUS_SPI_CRC_LEN + 3);
-          if(resp != 0) //(RET_SUCCESS)
-          {
-            report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_TX, resp);
-          }
+        }else{
+            // Check to make sure this isn't a null packet (all 0s)
+            if(!(buffer[0] == 0 && buffer[1] == 0 && buffer[1] == 0 && buffer[2] == 0 && buffer[3] == 0 && buffer[5] == 0 && buffer[8] == 0 && buffer[13] == 0 && buffer[21] == 0))
+            {
+              // Send three extra bytes telling us where the picture came from, and any errors from the SD card
+              buffer[512] = readPic;
+              buffer[513]= i%100;
+              buffer[514]= resp;
+              // Transmit this block across SPI
+              resp = BUS_SPI_txrx(srcAddr,buffer,NULL,512 + BUS_SPI_CRC_LEN + 3);
+              if(resp != RET_SUCCESS){
+                report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_TX, resp);
+              }
 
-          P6OUT^=BIT6;
-          // Wait for a while, to let the packet fully transmit
-          ctl_timeout_wait(ctl_get_current_time()+3000);
+              P6OUT^=BIT6;
+              // Wait for a while, to let the packet fully transmit
+              ctl_timeout_wait(ctl_get_current_time()+3000);
+            }
         }
-        }
-        BUS_free_buffer();
       }
+      //done with buffer, free it
+      BUS_free_buffer();
      
 
       printf("\r\nDone!\r\n");
