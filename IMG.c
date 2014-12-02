@@ -14,6 +14,7 @@
 #include "IMG_errors.h"
 #include "LED.h"
 #include "sensor.h"
+#include "IMG.h"
 
 CTL_EVENT_SET_t cmd_parse_evt;
 // Setup for imager events
@@ -176,7 +177,7 @@ void img_events(void *p0) __toplevel{
           }else{
 
               // Set nextblock
-              nextBlock = writePic * 100;
+              nextBlock = IMG_ADDR_START + writePic * IMG_SLOT_SIZE;
       
               // Store the image
               piclength = Adafruit_VC0706_frameLength();
@@ -222,8 +223,8 @@ void img_events(void *p0) __toplevel{
               {
                 block[i] = 0;
               }
-              // Keep writing blocks until you have written 100 blocks total 
-              while(nextBlock % 100 != 0)
+              // Keep writing blocks until you have written IMG_SLOT_SIZE blocks total 
+              while(nextBlock % IMG_SLOT_SIZE != 0)
               {
                 mmcWriteBlock(nextBlock++, block);
               }
@@ -247,12 +248,12 @@ void img_events(void *p0) __toplevel{
       printf("Loaded picture (%i blocks):\r\n", nextBlock-1);
       //reserve buffer
       buffer=BUS_get_buffer(CTL_TIMEOUT_DELAY,10000);
-      // Send 100 packets over.
-      for(i = (readPic * 100); i < (readPic * 100) + 2/*100*/; i++)
+      //Send blocks from image
+      for(i = 0; i < IMG_SLOT_SIZE; i++)
       {
         LED_toggle(IMG_READ_LED);
         //read from SD card
-        resp=mmcReadBlock(i,buffer);
+        resp=mmcReadBlock(IMG_ADDR_START+readPic*IMG_SLOT_SIZE+i,buffer);
 
         if(resp != MMC_SUCCESS){
           report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_READ, resp);
