@@ -4,9 +4,10 @@
     #include <ctl.h>
 
     //flags for events handled by the imager
-    enum{IMG_EV_TAKEPIC=(1<<0),IMG_EV_SAVEPIC=(1<<1),IMG_EV_LOADPIC=(1<<2)};
+    enum{IMG_EV_TAKEPIC=(1<<0),IMG_EV_LOADPIC=(1<<1)};
 
-    #define IMG_EV_ALL (IMG_EV_TAKEPIC|IMG_EV_SAVEPIC|IMG_EV_LOADPIC)
+    
+    #define IMG_EV_ALL (IMG_EV_TAKEPIC|IMG_EV_LOADPIC)
     
     //define number of image slots
     #define NUM_IMG_SLOTS           (5)
