@@ -236,7 +236,7 @@ void img_events(void *p0) __toplevel{
 
               Adafruit_VC0706_TVoff();
               // Turn sensor off
-              sensor_on();
+              sensor_off();
 
               printf("\n\rDone.\r\n");
             }
