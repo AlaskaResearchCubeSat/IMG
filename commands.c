@@ -14,6 +14,7 @@
 #include "Adafruit_VC0706.h"
 #include "IMG_Events.h"
 #include "sensor.h"
+#include "IMG.h"
 
 //the tvOff command, turns the video out 'off'
 int tvOffCmd(char **argv, unsigned short argc){
@@ -27,7 +28,7 @@ int savePicCmd(char **argv, unsigned short argc){
   int writeCount = 0;
   unsigned char *block;
   int count = 0;
-  int nextBlock = 0;
+  int nextBlock = IMG_ADDR_START;
   printf("Storing a %lu byte image.\r\n", jpglen);
   
   if((mmc_is_init() == MMC_SUCCESS) && (jpglen != 0)){
@@ -150,6 +151,13 @@ int dumpPicTask(char **argv,unsigned short argc)
   ctl_events_set_clear(&IMG_events, IMG_EV_LOADPIC,0);
 }
 
+int picloc_Cmd(char **argv,unsigned short argc){
+    //savepic command always saves at IMG_ADDR_START
+    printf("%i\r\n",IMG_ADDR_START);
+    //everything is always good
+    return 0;
+}
+
 
 
 //table of commands with help
@@ -167,5 +175,6 @@ const CMD_SPEC cmd_tbl[]={{"help"," [command]\r\n\t""get a list of commands or h
                          {"version", "\r\n\t""Print camera version", versionCmd},
                          {"takepictask", "\r\n\t""Trigger take pic event", takePicTask},
                          {"loadpictask", "\r\n\t""Trigger load pic event", dumpPicTask},
+                         {"picloc", "\r\n\t""Print sector for picture storage", picloc_Cmd},
                          //end of list
                          {NULL,NULL,NULL}};

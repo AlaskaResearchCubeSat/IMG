@@ -54,8 +54,16 @@ function Storepic(com,baud)
 
         fprintf('Reading %i byte image in %i blocks\n',imglen,ceil(imglen/512));
 
+        %get first block of image
+        command(ser,'picloc');
+        %get line
+        line=fgetl(ser);
+        %convert number
+        img_start=str2double(line);
+        waitReady(ser);
+        
         for x=0:(ceil(imglen/512)-1)
-            data = mmc_get_block(ser,x);
+            data = mmc_get_block(ser,img_start+x);
             count=fwrite(imgout, data);
             if(count~=512)
                 warning('Error writing data for block %i',x)
