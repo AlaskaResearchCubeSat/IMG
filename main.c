@@ -7,7 +7,6 @@
 #include <SDlib.h>
 #include "timerA.h"
 #include <terminal.h>
-#include "IMG_Events.h"
 #include "Error.h"
 #include "IMG_errors.h"
 #include "IMG.h"

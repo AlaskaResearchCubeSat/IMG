@@ -9,7 +9,6 @@
 #include "timerA.h"
 #include <terminal.h>
 #include "Adafruit_VC0706.h"
-#include "IMG_Events.h"
 #include "Error.h"
 #include "IMG_errors.h"
 #include "LED.h"

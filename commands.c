@@ -12,7 +12,6 @@
 #include "SDlib.h"
 #include "IMG_errors.h"
 #include "Adafruit_VC0706.h"
-#include "IMG_Events.h"
 #include "sensor.h"
 #include "IMG.h"
 
