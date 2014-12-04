@@ -31,6 +31,8 @@ char *err_decode(char buf[150], unsigned short source,int err, unsigned short ar
           return buf;
         case ERR_IMG_TAKEPIC:
           return "IMG : Error taking picture";
+        case ERR_IMG_READPIC:
+          return "IMG : Error reading picture data from camera";
       }
     break; 
   }

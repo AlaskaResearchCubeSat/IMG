@@ -28,12 +28,13 @@ int savePicCmd(char **argv, unsigned short argc){
   unsigned char *block;
   int count = 0;
   int nextBlock = IMG_ADDR_START;
+  unsigned char* buffer=NULL;
+  int resp;
   printf("Storing a %lu byte image.\r\n", jpglen);
   
   if((mmc_is_init() == MMC_SUCCESS) && (jpglen != 0)){
     block = BUS_get_buffer(CTL_TIMEOUT_NONE, 0);
     while(jpglen > 0){
-      unsigned char* buffer;
 
       int bytesToRead;
       if (jpglen < 64){
@@ -43,11 +44,21 @@ int savePicCmd(char **argv, unsigned short argc){
         bytesToRead = 64;
       }
       buffer = Adafruit_VC0706_readPicture(bytesToRead);
+      if(buffer==NULL){
+        printf("Error Reading image data. aborting image transfer\r\n");
+        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READPIC,0);
+        break;
+      }
       memcpy(block + count*64, buffer, 64); count++;
       
       if (count >= 8){
         count = 0;
-        mmcWriteBlock(nextBlock++, block);
+        resp = mmcWriteBlock(nextBlock++, block);
+        if(resp != MMC_SUCCESS){
+          report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_WRITE,resp);
+          //error encountered, abort write
+          break;
+        }
       }
       if(++writeCount >= 64){
         printf(".");
@@ -56,8 +67,11 @@ int savePicCmd(char **argv, unsigned short argc){
       
       jpglen -= bytesToRead;
     }
-  if (count != 0){
+  if (count != 0 && buffer!=NULL && resp == MMC_SUCCESS){
     mmcWriteBlock(nextBlock++, block);
+    if(resp != MMC_SUCCESS){
+      report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_WRITE,resp);
+    }
   }
   BUS_free_buffer();
   printf("\r\nDone writing image to SD card.\r\n""Memory blocks used: %i\r\n",(nextBlock-1));
