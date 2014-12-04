@@ -83,9 +83,9 @@ int main(void){
 
   //create tasks
   //ctl_task_run(&tasks[1],2,async_wait_term,(void*)&async_term,"terminal",sizeof(stack2)/sizeof(stack2[0])-2,stack2+1,0);
-  ctl_task_run(&tasks[1],2,terminal,"IMG Test Program","terminal",sizeof(stack2)/sizeof(stack2[0])-2,stack2+1,0);
+  ctl_task_run(&tasks[1],BUS_PRI_LOW,terminal,"IMG Test Program","terminal",sizeof(stack2)/sizeof(stack2[0])-2,stack2+1,0);
   ctl_task_run(&tasks[2],BUS_PRI_HIGH,sub_events,NULL,"sub_events",sizeof(stack3)/sizeof(stack3[0])-2,stack3+1,0);
-  ctl_task_run(&tasks[3],3,img_events,NULL,"img_events",sizeof(stack4)/sizeof(stack4[0])-2,stack4+1,0);
+  ctl_task_run(&tasks[3],BUS_PRI_NORMAL,img_events,NULL,"img_events",sizeof(stack4)/sizeof(stack4[0])-2,stack4+1,0);
  
   mainLoop();
 }
