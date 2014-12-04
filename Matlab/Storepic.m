@@ -99,6 +99,7 @@ function Storepic(com,baud)
     %display picture
     figure;
     img=imread(fname);
-    image(img)
+    img=imrotate(img,-90);
+    imshow(img);
 end
 
