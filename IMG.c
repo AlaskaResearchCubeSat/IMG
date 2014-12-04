@@ -158,8 +158,6 @@ void img_events(void *p0) __toplevel{
       // Turn sensor on
       sensor_on();
 
-      Adafruit_VC0706_init();
-      Adafruit_VC0706_TVon();
       Adafruit_VC0706_setImageSize(VC0706_640x480);
       // Let the camera boot up for a little bit...
       ctl_timeout_wait(ctl_get_current_time()+500);
