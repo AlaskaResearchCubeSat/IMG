@@ -18,19 +18,8 @@ function Storepic(com,baud)
         %start recording
         record(ser,'on');
 
+        %connect to imager
         asyncOpen(ser,'IMG');
-        command(ser,'log error');
-        waitReady(ser);
-        command(ser,'camon');
-        waitReady(ser);
-        command(ser,'resume');
-        waitReady(ser);
-        command(ser,'setimgsize');
-        waitReady(ser);
-        command(ser,'mmcinit');
-        waitReady(ser);
-        command(ser,'takepic');
-        waitReady(ser);
         command(ser,'savepic');
         line = fgetl(ser);
         ser.Timeout=40;

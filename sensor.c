@@ -48,13 +48,24 @@ int savepic(void){
     int writeCount = 0;
     unsigned char *block;
     int count = 0;
-    int nextBlock = IMG_ADDR_START;
+    int nextBlock;
     unsigned char* buffer=NULL;
     int resp;
     int bytesToRead;
     
+    //set image size
+    Adafruit_VC0706_setImageSize(VC0706_640x480);
+    //take the picture
+    if(!Adafruit_VC0706_takePicture()){
+        report_error(ERR_LEV_CRITICAL,ERR_IMG,ERR_IMG_TAKEPIC, 0);
+        printf("Failed to take picture.\r\n");
+        return 7;
+    }
+    
     //get frame length
     jpglen = Adafruit_VC0706_frameLength();
+    //print frame length for Matlab    
+    printf("Storing a %lu byte image.\r\n", jpglen);
     //check if there is an image available
     if(jpglen == 0){
         printf("Error: No image in buffer\r\n\n");
@@ -68,6 +79,9 @@ int savepic(void){
         printf("Error : buffer busy\r\n");
         return 2;
     }
+    
+    // Set nextblock
+    nextBlock = IMG_ADDR_START + writePic * IMG_SLOT_SIZE;
     
     while(jpglen > 0){
         //check if there is less than 64 bytes

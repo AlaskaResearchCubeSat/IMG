@@ -152,92 +152,16 @@ void img_events(void *p0) __toplevel{
   for(;;){
     e=ctl_events_wait(CTL_EVENT_WAIT_ANY_EVENTS_WITH_AUTO_CLEAR,&IMG_events,IMG_EV_ALL,CTL_TIMEOUT_NONE,0);
     if(e&IMG_EV_TAKEPIC){// Turn camera on, and then take picture
-      // print message
-      printf("Booting up imager\r\n");
-
-      // Turn sensor on
-      sensor_on();
-
-      Adafruit_VC0706_setImageSize(VC0706_640x480);
-      // Let the camera boot up for a little bit...
-      ctl_timeout_wait(ctl_get_current_time()+500);
-
-      if(!Adafruit_VC0706_takePicture()){
-        report_error(ERR_LEV_CRITICAL,ERR_IMG,ERR_IMG_TAKEPIC, 0);
-      }else{
-          printf("Saving\r\n");
-          // Initialize the SD card
-          resp=mmcInit_card();
-
-          if(resp != MMC_SUCCESS){
-            report_error(ERR_LEV_CRITICAL,ERR_IMG,ERR_IMG_SD_CARD_INIT,resp);
-          }else{
-
-              // Set nextblock
-              nextBlock = IMG_ADDR_START + writePic * IMG_SLOT_SIZE;
-      
-              // Store the image
-              piclength = Adafruit_VC0706_frameLength();
-              block = BUS_get_buffer(CTL_TIMEOUT_NONE, 0);
-              while(piclength > 0){
-                unsigned char* buffer;
-
-                int bytesToRead;
-                if (piclength < 64){
-                  bytesToRead = piclength;
-                }
-                else{
-                  bytesToRead = 64;
-                }
-                buffer = Adafruit_VC0706_readPicture(bytesToRead);
-                memcpy(block + count*64, buffer, 64); count++;
-    
-                if (count >= 8){
-                  count = 0;
-                  resp = mmcWriteBlock(nextBlock++, block);
-                  if(resp != MMC_SUCCESS){
-                    report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_WRITE,resp);
-                    //error encountered, abort write
-                    break;
-                  }
-                }
-                if(++writeCount >= 64){
-                  printf(".");
-                  writeCount = 0;
-                }
-      
-                piclength -= bytesToRead;
-              }
-              //check if there are more bytes to write
-              if (count != 0 && resp == MMC_SUCCESS){
-                resp = mmcWriteBlock(nextBlock++, block);
-                if(resp != MMC_SUCCESS){
-                  report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_WRITE,resp);
-                }
-              }
-              // Reset the buffer to 0
-              for(i = 0; i < BUS_get_buffer_size(); i++)
-              {
-                block[i] = 0;
-              }
-              // Keep writing blocks until you have written IMG_SLOT_SIZE blocks total 
-              while(nextBlock % IMG_SLOT_SIZE != 0)
-              {
-                mmcWriteBlock(nextBlock++, block);
-              }
-              BUS_free_buffer();
-              // End storing image
-
-              // Save picture length
-              piclength = Adafruit_VC0706_frameLength();
-
-              Adafruit_VC0706_TVoff();
-              // Turn sensor off
-              sensor_off();
-
-              printf("\n\rDone.\r\n");
-            }
-        }
+        //set picture slot to use
+        writePic=0;
+        //turn the sensor on
+        sensor_on();
+        // Let the camera boot up for a little bit...
+        ctl_timeout_wait(ctl_get_current_time()+500);
+        //take picture
+        savepic();
+        //turn the sensor off
+        sensor_off();
     }
     if(e&IMG_EV_LOADPIC){ // Load the picture from the SD card and send it through the bus
       //print message

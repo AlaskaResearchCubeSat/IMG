@@ -23,12 +23,17 @@ int tvOffCmd(char **argv, unsigned short argc){
 }
 
 int savePicCmd(char **argv, unsigned short argc){
-  uint32_t jpglen = Adafruit_VC0706_frameLength();
-  printf("Storing a %lu byte image.\r\n", jpglen);
-  
-  savepic();
-  
-  return 0;
+    //set picture slot to use
+    writePic=0;
+    //turn the sensor on
+    sensor_on();
+    // Let the camera boot up for a little bit...
+    ctl_timeout_wait(ctl_get_current_time()+500);
+    //take picture
+    savepic();
+    //turn the sensor off
+    sensor_off();
+    return 0;
 }
 
 //the tvOn command, turns the video output 'on'
@@ -51,20 +56,6 @@ int camOffCmd(char **argv, unsigned short argc){
   // Turn sensor off
   sensor_off();
   printf("Camera off\r\n\n");
-}
-
-
-//freezes the frame, keeps the picture in the camera buffer 
-int takePicCmd(char **argv, unsigned short argc){
-  Adafruit_VC0706_setImageSize(VC0706_640x480);
-  printf("Taking a picture.. (Frame will freeze on video device)\r\n");
-  //Adafruit_VC0706_takePicture();
-  if(!Adafruit_VC0706_takePicture()){
-    printf("Failed to take picture.\r\n");
-  }
-  else{
-    printf("Picture taken.\r\n\n");
-  }
 }
 
 //ask the camera how big the current picture is
@@ -125,7 +116,6 @@ const CMD_SPEC cmd_tbl[]={{"help"," [command]\r\n\t""get a list of commands or h
                          {"camon","\r\n\t""Trun on power to the image sensor",camOnCmd},
                          {"camoff","\r\n\t""Trun off power to the image sensor",camOffCmd},
                          {"imgsize","\r\n\t""Read the image size",imgSizeCmd},
-                         {"takepic","\r\n\t""Command the camera to take a picture",takePicCmd},
                          {"resume","\r\n\t""resume previewing after taking a picture",resumeVidCmd},
                          {"savepic","\r\n\t""Save a picture into the SD card",savePicCmd}, 
                          {"pbuff","\r\n\t""Print camera buffer",printBuffCmd},
