@@ -89,8 +89,19 @@ int printBuffCmd(char **argv,unsigned short argc){
 
 int takePicTask(char **argv,unsigned short argc)
 {
-  //Trigger the takepic event
-  ctl_events_set_clear(&IMG_events, IMG_EV_TAKEPIC,0);
+   unsigned short e;
+   //set picture slot
+   writePic=0;
+   //Trigger the takepic event and clear pic taken event
+   ctl_events_set_clear(&IMG_events, IMG_EV_TAKEPIC,IMG_EV_PIC_TAKEN);
+   //wait for picture to complete, set a timeout of 15 sec
+   e=ctl_events_wait(CTL_EVENT_WAIT_ANY_EVENTS_WITH_AUTO_CLEAR,&IMG_events,IMG_EV_PIC_TAKEN,CTL_TIMEOUT_DELAY,30*1024);
+   //check if picture was taken
+   if(!(e&IMG_EV_PIC_TAKEN)){
+       //print error message
+       printf("Error timeout occoured\r\n");
+   }
+   return 0;
 }
 
 int dumpPicTask(char **argv,unsigned short argc)

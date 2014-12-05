@@ -4,7 +4,7 @@
     #include <ctl.h>
 
     //flags for events handled by the imager
-    enum{IMG_EV_TAKEPIC=(1<<0),IMG_EV_LOADPIC=(1<<1)};
+    enum{IMG_EV_TAKEPIC=(1<<0),IMG_EV_LOADPIC=(1<<1),IMG_EV_INPROGRESS=(1<<2),IMG_EV_PIC_TAKEN=(1<<3)};
 
     
     #define IMG_EV_ALL (IMG_EV_TAKEPIC|IMG_EV_LOADPIC)

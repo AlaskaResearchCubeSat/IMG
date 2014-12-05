@@ -154,6 +154,8 @@ void img_events(void *p0) __toplevel{
     if(e&IMG_EV_TAKEPIC){// Turn camera on, and then take picture
         //set picture slot to use
         writePic=0;
+        //set in progress event
+        ctl_events_set_clear(&IMG_events,IMG_EV_INPROGRESS,0);
         //turn the sensor on
         sensor_on();
         // Let the camera boot up for a little bit...
@@ -162,6 +164,8 @@ void img_events(void *p0) __toplevel{
         savepic();
         //turn the sensor off
         sensor_off();
+        //clear in progress event and set pic taken event
+        ctl_events_set_clear(&IMG_events,IMG_EV_PIC_TAKEN,IMG_EV_INPROGRESS);
     }
     if(e&IMG_EV_LOADPIC){ // Load the picture from the SD card and send it through the bus
       //print message

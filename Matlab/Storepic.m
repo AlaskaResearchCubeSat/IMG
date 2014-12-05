@@ -1,9 +1,12 @@
-function Storepic(com,baud)
+function Storepic(com,baud,cmd)
     if(~exist('baud','var') || isempty(baud))
         baud=57600;
     end
     if ~exist('com','var') || isempty(com)
         com='COM5';
+    end
+    if ~exist('cmd','var') || isempty(cmd)
+        cmd='takepictask';
     end
     
     try
@@ -20,8 +23,11 @@ function Storepic(com,baud)
 
         %connect to imager
         asyncOpen(ser,'IMG');
-        command(ser,'savepic');
+        %run take picture command
+        command(ser,cmd);
+        %get line with picture size
         line = fgetl(ser);
+        %make timeout longer so the image 
         ser.Timeout=40;
 
         chk = 1;
