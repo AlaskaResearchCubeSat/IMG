@@ -66,7 +66,7 @@ typedef unsigned long uint32_t;
   boolean Adafruit_VC0706_TVon(void);
   boolean Adafruit_VC0706_TVoff(void);
   boolean Adafruit_VC0706_takePicture(void);
-  uint8_t *Adafruit_VC0706_readPicture(uint8_t n);
+  uint8_t *Adafruit_VC0706_readPicture(uint16_t frameptr,uint8_t n);
   boolean Adafruit_VC0706_resumeVideo(void);
   uint32_t Adafruit_VC0706_frameLength(void);
   char *Adafruit_VC0706_getVersion(void);

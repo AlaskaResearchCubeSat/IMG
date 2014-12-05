@@ -44,11 +44,10 @@ void sensor_off(void){
 }
 
 int savepic(void){
-    uint32_t jpglen;
-    int writeCount = 0;
+    uint32_t jpglen,i;
     unsigned char *block;
-    int count = 0;
-    int nextBlock;
+    int j;
+    int blockAddr;
     unsigned char* buffer=NULL;
     int resp;
     int bytesToRead;
@@ -81,66 +80,48 @@ int savepic(void){
     }
     
     // Set nextblock
-    nextBlock = IMG_ADDR_START + writePic * IMG_SLOT_SIZE;
+    blockAddr = IMG_ADDR_START + writePic * IMG_SLOT_SIZE;
     
-    while(jpglen > 0){
-        //check if there is less than 64 bytes
-        if (jpglen < 64){
-            //if yes read all bytes
-            bytesToRead = jpglen;
-        }else{
-            //otherwise read 64 bytes
-            bytesToRead = 64;
-        }
-        //get data from sensor
-        buffer = Adafruit_VC0706_readPicture(bytesToRead);
-        //check for errors
-        if(buffer==NULL){
-            printf("Error Reading image data. aborting image transfer\r\n");
-            report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READPIC,0);
-            BUS_free_buffer();
-            return 3;
-        }
-        //copy into buffer
-        memcpy(block + count*64, buffer, 64); count++;
-        
-        //check if block if full
-        if (count >= 8){
-            //reset count
-            count = 0;
-            //write block to SD card
-            resp = mmcWriteBlock(nextBlock++, block);
-            //check for errors
-            if(resp != MMC_SUCCESS){
-                report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_WRITE,resp);
-                //free buffer
-                BUS_free_buffer();
-                //error encountered, abort image store
-                return 4;
+    for(i=0;i<jpglen;blockAddr++){
+        for(j=0;j<512 && i<jpglen;){
+            //check if there is more than 64 bytes
+            if (jpglen-i > 64){
+                //read 64 bytes
+                bytesToRead = 64;
+            }else{
+                //calculate number of bytes remaining
+                bytesToRead =jpglen-i;
             }
+            //get data from sensor
+            buffer = Adafruit_VC0706_readPicture(i,bytesToRead);
+            //check for errors
+            if(buffer==NULL){
+                printf("Error Reading image data. aborting image transfer\r\n");
+                report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READPIC,0);
+                BUS_free_buffer();
+                return 3;
+            }
+            //copy into buffer
+            memcpy(block + j, buffer, bytesToRead);
+            //add bytes to indexes
+            j+=bytesToRead;
+            i+=bytesToRead;
         }
-        //print progress dots
-        if(++writeCount >= 64){
-            printf(".");
-            writeCount = 0;
-        }
-        //subtract bytes read from total
-        jpglen -= bytesToRead;
-    }
-    //check if there is data in the block
-    if (count != 0){
-        //write block
-        mmcWriteBlock(nextBlock++, block);
-        //check for error
+       //write block to SD card
+        resp = mmcWriteBlock(blockAddr,block);
+        //check for errors
         if(resp != MMC_SUCCESS){
             report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_WRITE,resp);
             //free buffer
             BUS_free_buffer();
-            return 5;
+            //error encountered, abort image store
+            return 4;
         }
+        //print progress in percent
+        printf("\r%4i%%\r",(100*i)/jpglen);
     }
     BUS_free_buffer();
-    printf("\r\nDone writing image to SD card.\r\n""Memory blocks used: %i\r\n",(nextBlock-1));
+    printf("Done writing image to SD card.\r\n""Memory blocks used: %i\r\n",(blockAddr-1));
     return 0;
 }
 

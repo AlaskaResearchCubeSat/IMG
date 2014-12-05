@@ -24,10 +24,9 @@
   uint8_t  camerabuff[CAMERABUFFSIZ+1];
   uint8_t  bufferLen;
   uint8_t  serialNum;
-  uint16_t frameptr;
+
 
 void Adafruit_VC0706_init(void) {
-  frameptr  = 0;
   bufferLen = 0;
   serialNum = 0;
   UCA1_init_UART();
@@ -235,7 +234,6 @@ boolean Adafruit_VC0706_getPTZ(uint16_t *w, uint16_t *h, uint16_t *wz, uint16_t 
 
 
 boolean Adafruit_VC0706_takePicture(void) {
-  frameptr = 0;
   return Adafruit_VC0706_cameraFrameBuffCtrl(VC0706_STOPCURRENTFRAME); 
 }
 
@@ -284,7 +282,7 @@ uint8_t Adafruit_VC0706_available(void) {
 }
 
 
-uint8_t * Adafruit_VC0706_readPicture(uint8_t n) {
+uint8_t * Adafruit_VC0706_readPicture(uint16_t frameptr,uint8_t n) {
   uint8_t args[13] = {0x0C, 0x0, 0x0A, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   args[5] = frameptr >> 8;
   args[6] = frameptr & 0xFF;
@@ -299,9 +297,6 @@ uint8_t * Adafruit_VC0706_readPicture(uint8_t n) {
   // read into the buffer PACKETLEN!
   if (Adafruit_VC0706_readResponse(n+5, CAMERADELAY) == 0) 
       return 0;
-
-
-  frameptr += n;
 
   return camerabuff;
 }
