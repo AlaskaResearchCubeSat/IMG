@@ -15,11 +15,10 @@
 
 CTL_TASK_t tasks[4];
 
-//stacks for tasks
-unsigned stack1[1+100+1];          
-unsigned stack2[1+200+1];
-unsigned stack3[1+350+1];   
-unsigned stack4[1+300+1];                                                                  
+//stacks for tasks       
+unsigned stack1[1+200+1];
+unsigned stack2[1+350+1];   
+unsigned stack3[1+200+1];                                                                  
 
 
 //set printf and friends to send chars out UCA1 uart
@@ -78,14 +77,12 @@ int main(void){
   memset(stack3,0xcd,sizeof(stack3));  // write known values into the stack
   stack3[0]=stack3[sizeof(stack3)/sizeof(stack3[0])-1]=0xfeed; // put marker values at the words before/after the stack
 
-  memset(stack4,0xcd,sizeof(stack4));  // write known values into the stack
-  stack4[0]=stack4[sizeof(stack4)/sizeof(stack4[0])-1]=0xfeed; // put marker values at the words before/after the stack
 
   //create tasks
-  //ctl_task_run(&tasks[1],2,async_wait_term,(void*)&async_term,"terminal",sizeof(stack2)/sizeof(stack2[0])-2,stack2+1,0);
-  ctl_task_run(&tasks[1],BUS_PRI_LOW,terminal,"IMG Test Program","terminal",sizeof(stack2)/sizeof(stack2[0])-2,stack2+1,0);
-  ctl_task_run(&tasks[2],BUS_PRI_HIGH,sub_events,NULL,"sub_events",sizeof(stack3)/sizeof(stack3[0])-2,stack3+1,0);
-  ctl_task_run(&tasks[3],BUS_PRI_NORMAL,img_events,NULL,"img_events",sizeof(stack4)/sizeof(stack4[0])-2,stack4+1,0);
+  //ctl_task_run(&tasks[1],BUS_PRI_LOW,async_wait_term,(void*)&async_term,"terminal",sizeof(stack1)/sizeof(stack1[0])-2,stack1+1,0);
+  ctl_task_run(&tasks[1],BUS_PRI_LOW,terminal,"IMG Test Program","terminal",sizeof(stack1)/sizeof(stack1[0])-2,stack1+1,0);
+  ctl_task_run(&tasks[2],BUS_PRI_HIGH,sub_events,NULL,"sub_events",sizeof(stack2)/sizeof(stack2[0])-2,stack2+1,0);
+  ctl_task_run(&tasks[3],BUS_PRI_NORMAL,img_events,NULL,"img_events",sizeof(stack3)/sizeof(stack3[0])-2,stack3+1,0);
  
   mainLoop();
 }
