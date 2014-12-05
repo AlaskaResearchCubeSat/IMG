@@ -79,7 +79,7 @@ int savepic(void){
         return 2;
     }
     
-    // Set nextblock
+    // Set block address
     blockAddr = IMG_ADDR_START + writePic * IMG_SLOT_SIZE;
     
     for(i=0;i<jpglen;blockAddr++){
@@ -121,7 +121,7 @@ int savepic(void){
         printf("\r%4i%%\r",(100*i)/jpglen);
     }
     BUS_free_buffer();
-    printf("Done writing image to SD card.\r\n""Memory blocks used: %i\r\n",(blockAddr-1));
+    printf("Done writing image to SD card.\r\n""Memory blocks used: %i\r\n",(blockAddr-1)-IMG_ADDR_START + writePic * IMG_SLOT_SIZE);
     return 0;
 }
 
