@@ -8,7 +8,10 @@
 #include "IMG_errors.h"
 #include <Error.h>
 #include <SDlib.h>
+#include <crc.h>
 
+//Size in bytes of block to read from sensor
+#define SENSOR_READ_BLOCK_SIZE          (64)
 
 void sensor_init(void){
 
@@ -45,12 +48,13 @@ void sensor_off(void){
 
 int savepic(void){
     uint32_t jpglen,i;
-    unsigned char *block;
+    IMG_DAT *block;
     int j;
-    int blockAddr;
+    unsigned long baseAddr;
+    int blockIdx;
     unsigned char* buffer=NULL;
     int resp;
-    int bytesToRead;
+    int bytesToRead,blockspace;
     
     //set image size
     Adafruit_VC0706_setImageSize(VC0706_640x480);
@@ -80,17 +84,24 @@ int savepic(void){
     }
     
     // Set block address
-    blockAddr = IMG_ADDR_START + writePic * IMG_SLOT_SIZE;
+    baseAddr = IMG_ADDR_START + writePic * IMG_SLOT_SIZE;
     
-    for(i=0;i<jpglen;blockAddr++){
-        for(j=0;j<512 && i<jpglen;){
-            //check if there is more than 64 bytes
-            if (jpglen-i > 64){
+    for(i=0,blockIdx=0;i<jpglen;blockIdx++){
+        for(j=0;j<sizeof(block->dat) && i<jpglen;){
+            //check if there is more than SENSOR_READ_BLOCK_SIZE bytes to read
+            if (jpglen-i > SENSOR_READ_BLOCK_SIZE){
                 //read 64 bytes
-                bytesToRead = 64;
+                bytesToRead = SENSOR_READ_BLOCK_SIZE;
             }else{
                 //calculate number of bytes remaining
                 bytesToRead =jpglen-i;
+            }
+            //calculate the number of bytes left in the block
+            blockspace=sizeof(block->dat)-(j);
+            //check available space in block
+            if(bytesToRead>blockspace){
+                //only read enough to fill the block
+                bytesToRead=blockspace;
             }
             //get data from sensor
             buffer = Adafruit_VC0706_readPicture(i,bytesToRead);
@@ -102,13 +113,22 @@ int savepic(void){
                 return 3;
             }
             //copy into buffer
-            memcpy(block + j, buffer, bytesToRead);
+            memcpy(&(block->dat[j]), buffer, bytesToRead);
             //add bytes to indexes
             j+=bytesToRead;
             i+=bytesToRead;
         }
-       //write block to SD card
-        resp = mmcWriteBlock(blockAddr,block);
+        //write block fields
+        //set block type
+        block->magic=(blockIdx==0)?BT_IMG_START:BT_IMG_BODY;
+        //set image number
+        block->num=writePic;        //TODO: do this better somehow
+        //set block number
+        block->block=(blockIdx==0)?(jpglen+sizeof(block->dat)-1)/sizeof(block->dat):blockIdx;
+        //calculate CRC
+        block->CRC=crc16(block,sizeof(*block)-sizeof(block->CRC));
+        //write block to SD card
+        resp = mmcWriteBlock(baseAddr+blockIdx,(unsigned char*)block);
         //check for errors
         if(resp != MMC_SUCCESS){
             report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_WRITE,resp);
@@ -120,8 +140,9 @@ int savepic(void){
         //print progress in percent
         printf("\r%4i%%\r",(100*i)/jpglen);
     }
+    
     BUS_free_buffer();
-    printf("Done writing image to SD card.\r\n""Memory blocks used: %i\r\n",(blockAddr-1)-IMG_ADDR_START + writePic * IMG_SLOT_SIZE);
+    printf("Done writing image to SD card.\r\n""Memory blocks used: %i\r\n",blockIdx);
     return 0;
 }
 
