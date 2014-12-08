@@ -136,7 +136,6 @@ void img_events(void *p0) __toplevel{
   // piclength would be here, but it needs to be global (?)
   uint32_t piclength;
   int writeCount = 0;
-  unsigned char *block;
   int count = 0;
   int nextBlock = 0;
   int i;
