@@ -22,6 +22,18 @@
     //Event set for imager events
     extern CTL_EVENT_SET_t IMG_events;
 
+    //Block ID's for image blocks
+    enum{BT_IMG_START=0x990F,BT_IMG_BODY=0x99F0};
+
+    typedef struct{
+        unsigned short magic;
+        unsigned char  num;
+        unsigned char  block;
+        unsigned char dat[506];
+        unsigned short CRC;
+    }IMG_DAT;
+        
+
     void cmd_parse(void *p);
     void sub_events(void *p);
     void img_events(void *p0);  
