@@ -12,7 +12,7 @@
     //define number of image slots
     #define NUM_IMG_SLOTS           (5)
     //define the size of a image slot
-    #define IMG_SLOT_SIZE           (100)
+    #define IMG_SLOT_SIZE           (150)
     //define address ranges for image data
     enum{IMG_ADDR_START=ERR_ADDR_END+10,IMG_ADDR_END=IMG_ADDR_START+NUM_IMG_SLOTS*IMG_SLOT_SIZE};
 
