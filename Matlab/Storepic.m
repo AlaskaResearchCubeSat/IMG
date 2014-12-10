@@ -1,4 +1,4 @@
-function data=Storepic(com,baud,cmd)
+function [data]=Storepic(com,baud,cmd)
     if(~exist('baud','var') || isempty(baud))
         baud=57600;
     end
@@ -12,6 +12,7 @@ function data=Storepic(com,baud,cmd)
     %constants for imager
     BT_IMG_START=uint16(sscanf('0x990F','0x%X'));
     BT_IMG_BODY=uint16(sscanf('0x99F0','0x%X'));
+    IMG_SLOT_SIZE=150;
     
     try
         oldp=addpath('Z:\Software\Libraries\commands\Matlab');
@@ -23,27 +24,34 @@ function data=Storepic(com,baud,cmd)
         %ser.RecordDetail='verbose';
         fopen(ser);
         %start recording
-        record(ser,'on');
-
+        %record(ser,'on');
+        
+        fprintf('Connecting to imager\n');
         %connect to imager
         asyncOpen(ser,'IMG');
+        
+        fprintf('Taking picture\n');
         %run take picture command
         command(ser,cmd);
         %make timeout longer so the image 
         ser.Timeout=40;
 
-        waitReady(ser,40);
+        if(~waitReady(ser,80))
+            error('%s command failed to complete',cmd);
+        end
         
-        fprintf('Locating image in memory\r\n');
+        fprintf('Locating image in memory\n');
         %get first block of image
         command(ser,'picloc');
         %get line
         line=fgetl(ser);
         %convert number
         img_start=str2double(line);
-        waitReady(ser);
+        if(~waitReady(ser))
+            error('picloc command failed to complete');
+        end
         
-        fprintf('Transfering First Image Block\r\n');
+        fprintf('Transfering First Image Block\n');
         %get first block of image
         block = mmc_get_block(ser,img_start);
         
@@ -99,13 +107,14 @@ function data=Storepic(com,baud,cmd)
         imgout = fopen(fname,'w');
         %write data to file
         count=fwrite(imgout, data);
+        %close file
+        fclose(imgout);
         if(count~=length(data))
             error('Failed to write image data to file');
         end
     catch err
-        path(oldp);
-        
-        if(exist('imgout','var'))
+        %close file if it is open
+        if(exist('imgout','var') && any(fopen('all')==imgout))
             fclose(imgout);
         end
         
@@ -121,11 +130,11 @@ function data=Storepic(com,baud,cmd)
             end
             delete(ser);
         end
+        path(oldp);
         
         rethrow(err)
     end 
     %cleanup
-    fclose(imgout);
     asyncClose(ser);
     delete(ser); 
     
