@@ -54,7 +54,7 @@ int savepic(void){
     int blockIdx;
     unsigned char* buffer=NULL;
     int resp;
-    int bytesToRead,blockspace;
+    int bytesToRead,blockspace,bytesToWrite;
     
     //set image size
     Adafruit_VC0706_setImageSize(VC0706_640x480);
@@ -86,8 +86,19 @@ int savepic(void){
     // Set block address
     baseAddr = IMG_ADDR_START + writePic * IMG_SLOT_SIZE;
     
-    for(i=0,blockIdx=0;i<jpglen;blockIdx++){
-        for(j=0;j<sizeof(block->dat) && i<jpglen;){
+    for(i=0,bytesToRead=0,bytesToWrite=0,blockIdx=0;i<jpglen;blockIdx++){
+        //check for unwritten bytes
+        if(bytesToRead>bytesToWrite){
+            //copy into buffer
+            memcpy(block->dat, buffer+bytesToWrite, bytesToRead-bytesToWrite);
+            //add bytes to image index
+            i+=bytesToRead-bytesToWrite;
+            //set block index
+            j=bytesToRead-bytesToWrite;
+        }else{
+            j=0;
+        }
+        for(;j<sizeof(block->dat) && i<jpglen;){
             //check if there is more than SENSOR_READ_BLOCK_SIZE bytes to read
             if (jpglen-i > SENSOR_READ_BLOCK_SIZE){
                 //read 64 bytes
@@ -95,13 +106,6 @@ int savepic(void){
             }else{
                 //calculate number of bytes remaining
                 bytesToRead =jpglen-i;
-            }
-            //calculate the number of bytes left in the block
-            blockspace=sizeof(block->dat)-(j);
-            //check available space in block
-            if(bytesToRead>blockspace){
-                //only read enough to fill the block
-                bytesToRead=blockspace;
             }
             //get data from sensor
             buffer = Adafruit_VC0706_readPicture(i,bytesToRead);
@@ -112,11 +116,20 @@ int savepic(void){
                 BUS_free_buffer();
                 return 3;
             }
+            //number of bytes to write
+            bytesToWrite=bytesToRead;
+            //calculate the number of bytes left in the block
+            blockspace=sizeof(block->dat)-(j);
+            //check available space in block
+            if(bytesToWrite>blockspace){
+                //only read enough to fill the block
+                bytesToWrite=blockspace;
+            }
             //copy into buffer
-            memcpy(&(block->dat[j]), buffer, bytesToRead);
+            memcpy(&(block->dat[j]), buffer, bytesToWrite);
             //add bytes to indexes
-            j+=bytesToRead;
-            i+=bytesToRead;
+            j+=bytesToWrite;
+            i+=bytesToWrite;
         }
         //write block fields
         //set block type
