@@ -11,7 +11,7 @@
 #include <crc.h>
 
 //Size in bytes of block to read from sensor
-#define SENSOR_READ_BLOCK_SIZE          (64)
+#define SENSOR_READ_BLOCK_SIZE          (32)
 
 void sensor_init(void){
 
