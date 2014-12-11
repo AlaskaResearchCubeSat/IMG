@@ -67,8 +67,6 @@ int savepic(void){
     
     //get frame length
     jpglen = Adafruit_VC0706_frameLength();
-    //print frame length for Matlab    
-    printf("Storing a %lu byte image.\r\n", jpglen);
     //check if there is an image available
     if(jpglen == 0){
         printf("Error: No image in buffer\r\n\n");
