@@ -60,27 +60,30 @@ int savepic(void){
     Adafruit_VC0706_setImageSize(VC0706_640x480);
     //take the picture
     if(!Adafruit_VC0706_takePicture()){
+        //take picture failed, report error
         report_error(ERR_LEV_CRITICAL,ERR_IMG,ERR_IMG_TAKEPIC, 0);
-        printf("Failed to take picture.\r\n");
-        return 7;
+        //return error
+        return ERR_IMG_TAKEPIC;
     }
     
     //get frame length
     jpglen = Adafruit_VC0706_frameLength();
     //check if there is an image available
     if(jpglen == 0){
+        //no image in buffer, report error
         report_error(ERR_LEV_CRITICAL,ERR_IMG,ERR_IMG_PICSIZE, 0);
-        printf("Error: No image in buffer\r\n\n");
-        return 1;
+        //return error
+        return ERR_IMG_PICSIZE;
     }
     
     //get buffer
     block = BUS_get_buffer(CTL_TIMEOUT_DELAY,1000);
     //check if timeout expired
     if(block==NULL){
+        //buffer is locked, report error
         report_error(ERR_LEV_CRITICAL,ERR_IMG,ERR_IMG_BUFFER_BUSY, 0);
-        printf("Error : buffer busy\r\n");
-        return 2;
+        //return error
+        return ERR_IMG_BUFFER_BUSY;
     }
     
     // Set block address
@@ -111,10 +114,12 @@ int savepic(void){
             buffer = Adafruit_VC0706_readPicture(i,bytesToRead);
             //check for errors
             if(buffer==NULL){
-                printf("Error Reading image data. aborting image transfer\r\n");
+                //error reading image data, report error
                 report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READPIC,0);
+                //free buffer
                 BUS_free_buffer();
-                return 3;
+                //return error
+                return ERR_IMG_READPIC;
             }
             //number of bytes to write
             bytesToWrite=bytesToRead;
@@ -144,18 +149,17 @@ int savepic(void){
         resp = mmcWriteBlock(baseAddr+blockIdx,(unsigned char*)block);
         //check for errors
         if(resp != MMC_SUCCESS){
+            //write failed, report error
             report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_WRITE,resp);
             //free buffer
             BUS_free_buffer();
             //error encountered, abort image store
-            return 4;
+            return ERR_IMG_SD_CARD_WRITE;
         }
-        //print progress in percent
-        printf("\r%4i%%\r",(100*i)/jpglen);
     }
-    
+    //free buffer
     BUS_free_buffer();
-    printf("Done writing image to SD card.\r\n""Memory blocks used: %i\r\n",blockIdx);
-    return 0;
+    //SUCCESS!!
+    return IMG_RET_SUCCESS;
 }
 

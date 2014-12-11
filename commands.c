@@ -23,6 +23,7 @@ int tvOffCmd(char **argv, unsigned short argc){
 }
 
 int savePicCmd(char **argv, unsigned short argc){
+    int ret;
     //set picture slot to use
     writePic=0;
     //turn the sensor on
@@ -30,7 +31,13 @@ int savePicCmd(char **argv, unsigned short argc){
     // Let the camera boot up for a little bit...
     ctl_timeout_wait(ctl_get_current_time()+500);
     //take picture
-    savepic();
+    ret=savepic();
+    //check if picture saved correctly
+    if(ret==IMG_RET_SUCCESS){
+        printf("Image Stored Successfully\r\n");
+    }else{
+        printf("Error taking picture\r\n");
+    }
     //turn the sensor off
     sensor_off();
     return 0;
