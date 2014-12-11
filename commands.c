@@ -67,13 +67,30 @@ int camOffCmd(char **argv, unsigned short argc){
 
 //ask the camera how big the current picture is
 int imgSizeCmd(char **argv, unsigned short argc){
-  uint8_t imgsize = Adafruit_VC0706_getImageSize();
-  uint16_t jpglen = Adafruit_VC0706_frameLength();
-  printf("Image size: ");
-  if (imgsize == VC0706_640x480) printf("640x480\r\n");
-  if (imgsize == VC0706_320x240) printf("320x240\r\n");
-  if (imgsize == VC0706_160x120) printf("160x120\r\n"); 
-  printf("buffer contents size in bytes is: %u\r\n\n", jpglen);
+    const char *sptr="";
+    char buf[20];
+    uint8_t imgsize = Adafruit_VC0706_getImageSize();
+    uint16_t jpglen = Adafruit_VC0706_frameLength();
+    switch(imgsize){
+        case VC0706_640x480:
+            sptr="640x480";
+        break;
+        case VC0706_320x240:
+            sptr="320x240";
+        break;
+        case VC0706_160x120:
+            sptr="160x120"; 
+        break;
+        case 0xFF:
+            sptr="Error bad response from sensor";
+        break;
+        default:
+            sprintf(buf,"0x%02X",imgsize);
+            sptr=buf;
+        break;
+    }
+    printf("Image size: %s\r\n",sptr);
+    printf("buffer contents size in bytes is: %u\r\n\n", jpglen);
 }
 
 // resumes video feed to camera, picture data will no longer be available in the camera buffer
@@ -84,7 +101,18 @@ int resumeVidCmd(char **argv, unsigned short argc){
 }
 
 int versionCmd(char **argv, unsigned short argc){
-  printf("Camera version: %s\r\n", Adafruit_VC0706_getVersion());
+    const char *ver;
+    //get version
+    ver=Adafruit_VC0706_getVersion();
+    //check for error
+    if(ver!=NULL){
+        //print camera version
+        printf("Camera version: %s\r\n",ver);
+    }else{
+        //print error
+        printf("Error reading camera version\r\n");
+    }
+    return 0;
 }
 
 int printBuffCmd(char **argv,unsigned short argc){
