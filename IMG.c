@@ -29,8 +29,7 @@ int SUB_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned
   ticker time;
   switch(cmd){
 
-
-    case 13:
+    case CMD_IMG_TAKE_TIMED_PIC:
         //read time
         time =dat[3];
         time|=((ticker)dat[2])<<8;
@@ -42,14 +41,14 @@ int SUB_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned
 
         return RET_SUCCESS;
         //Handle imager commands
-    case 14:
+    case CMD_IMG_TAKE_PIC_NOW:
       // Set the picture slot to the sent value
       writePic = dat[0];
       // Call the take picture event
       ctl_events_set_clear(&IMG_events,IMG_EV_TAKEPIC,0);
       //Return Success
       return RET_SUCCESS;
-    case 15:
+    case CMD_IMG_READ_PIC:
       // Set the picture slot to the sent value
       readPic = dat[0];
       srcAddr = src;
