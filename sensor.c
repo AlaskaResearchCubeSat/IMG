@@ -156,6 +156,8 @@ int savepic(void){
             //error encountered, abort image store
             return ERR_IMG_SD_CARD_WRITE;
         }
+        //toggle LED for block write
+        LED_toggle(IMG_RW_LED);
     }
     //free buffer
     BUS_free_buffer();

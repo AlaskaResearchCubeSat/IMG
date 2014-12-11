@@ -4,7 +4,7 @@
 
 #define LED_PIN_MASK    (0xF0)
 
-enum{PWR_LED=1<<4,IMG_PWR_LED=1<<5,IMG_READ_LED=1<<6};
+enum{PWR_LED=1<<4,IMG_PWR_LED=1<<5,IMG_READ_LED=1<<6,IMG_RW_LED=1<<7};
 
 void LED_init(void);
 void LED_on(unsigned char mask);
