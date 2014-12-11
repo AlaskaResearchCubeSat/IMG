@@ -69,6 +69,7 @@ int savepic(void){
     jpglen = Adafruit_VC0706_frameLength();
     //check if there is an image available
     if(jpglen == 0){
+        report_error(ERR_LEV_CRITICAL,ERR_IMG,ERR_IMG_PICSIZE, 0);
         printf("Error: No image in buffer\r\n\n");
         return 1;
     }
