@@ -35,6 +35,8 @@ char *err_decode(char buf[150], unsigned short source,int err, unsigned short ar
           return "IMG : Error reading picture data from camera";
         case ERR_IMG_PICSIZE:
           return "IMG : Adafruit_VC0706_frameLength returned zero";
+        case ERR_IMG_BUFFER_BUSY:
+          return "IMG : Error failed to lock buffer";
       }
     break; 
   }

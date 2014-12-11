@@ -78,6 +78,7 @@ int savepic(void){
     block = BUS_get_buffer(CTL_TIMEOUT_DELAY,1000);
     //check if timeout expired
     if(block==NULL){
+        report_error(ERR_LEV_CRITICAL,ERR_IMG,ERR_IMG_BUFFER_BUSY, 0);
         printf("Error : buffer busy\r\n");
         return 2;
     }
