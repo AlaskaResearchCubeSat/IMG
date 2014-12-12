@@ -35,6 +35,8 @@ void sensor_init(void){
 void sensor_on(void){
     //power on sensor
     P7OUT|=BIT0;
+    // Let the camera boot up for a little bit...
+    ctl_timeout_wait(ctl_get_current_time()+500);
     //turn power LED on
     LED_on(IMG_PWR_LED);
 }

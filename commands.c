@@ -28,8 +28,6 @@ int savePicCmd(char **argv, unsigned short argc){
     writePic=0;
     //turn the sensor on
     sensor_on();
-    // Let the camera boot up for a little bit...
-    ctl_timeout_wait(ctl_get_current_time()+500);
     //take picture
     ret=savepic();
     //check if picture saved correctly

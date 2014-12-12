@@ -156,8 +156,6 @@ void img_events(void *p0) __toplevel{
         ctl_events_set_clear(&IMG_events,IMG_EV_INPROGRESS,0);
         //turn the sensor on
         sensor_on();
-        // Let the camera boot up for a little bit...
-        ctl_timeout_wait(ctl_get_current_time()+500);
         //take picture
         savepic();
         //turn the sensor off
