@@ -15,9 +15,6 @@
 
 void sensor_init(void){
 
-    //setup UCA1 uart for image communication
-    UCA1_init_UART();
-
     //setup system specific peripherals
     Adafruit_VC0706_init();
 
