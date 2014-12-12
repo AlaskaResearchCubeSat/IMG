@@ -64,7 +64,7 @@ int savepic(void){
     //take the picture
     if(!Adafruit_VC0706_takePicture()){
         //take picture failed, report error
-        report_error(ERR_LEV_CRITICAL,ERR_IMG,ERR_IMG_TAKEPIC, 0);
+        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_TAKEPIC, 0);
         //return error
         return ERR_IMG_TAKEPIC;
     }
@@ -74,7 +74,7 @@ int savepic(void){
     //check if there is an image available
     if(jpglen == 0){
         //no image in buffer, report error
-        report_error(ERR_LEV_CRITICAL,ERR_IMG,ERR_IMG_PICSIZE, 0);
+        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_PICSIZE, 0);
         //return error
         return ERR_IMG_PICSIZE;
     }
@@ -84,7 +84,7 @@ int savepic(void){
     //check if timeout expired
     if(block==NULL){
         //buffer is locked, report error
-        report_error(ERR_LEV_CRITICAL,ERR_IMG,ERR_IMG_BUFFER_BUSY, 0);
+        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_BUFFER_BUSY, 0);
         //return error
         return ERR_IMG_BUFFER_BUSY;
     }
