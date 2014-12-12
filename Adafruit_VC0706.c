@@ -92,7 +92,7 @@ boolean Adafruit_VC0706_getMotionDetect(void) {
 }
 
 uint8_t Adafruit_VC0706_getImageSize(void) {
-  uint8_t args[] = {0x4, 0x4, 0x1, 0x00, 0x19};
+  const uint8_t args[] = {0x4, 0x4, 0x1, 0x00, 0x19};
   if (! Adafruit_VC0706_runCommand(VC0706_READ_DATA, args, sizeof(args), 6,true))
     return -1;
 
@@ -110,7 +110,7 @@ boolean Adafruit_VC0706_setImageSize(uint8_t x) {
 /****************** downsize image control */
 
 uint8_t Adafruit_VC0706_getDownsize(void) {
-  uint8_t args[] = {0x0};
+  const uint8_t args[] = {0x0};
   if (! Adafruit_VC0706_runCommand(VC0706_DOWNSIZE_STATUS, args, 1, 6,true)) 
     return -1;
 
@@ -127,7 +127,7 @@ boolean Adafruit_VC0706_setDownsize(uint8_t newsize) {
 /***************** other high level commands */
 
 char * Adafruit_VC0706_getVersion(void) {
-  uint8_t args[] = {0x01};
+ const uint8_t args[] = {0x01};
   
  Adafruit_VC0706_sendCommand(VC0706_GEN_VERSION, args, 1);
   // get reply
@@ -175,7 +175,7 @@ boolean Adafruit_VC0706_setCompression(uint8_t c) {
 }
 
 uint8_t Adafruit_VC0706_getCompression(void) {
-  uint8_t args[] = {0x4, 0x1, 0x1, 0x12, 0x04};
+  const uint8_t args[] = {0x4, 0x1, 0x1, 0x12, 0x04};
   Adafruit_VC0706_runCommand(VC0706_READ_DATA, args, sizeof(args), 6, true);
   Adafruit_VC0706_printBuff();
   return camerabuff[5];
@@ -242,11 +242,11 @@ boolean Adafruit_VC0706_resumeVideo(void) {
 }
 
 boolean Adafruit_VC0706_TVon(void) {
-  uint8_t args[] = {0x1, 0x1};
+  const uint8_t args[] = {0x1, 0x1};
   return Adafruit_VC0706_runCommand(VC0706_TVOUT_CTRL, args, sizeof(args), 5, true);
 }
 boolean Adafruit_VC0706_TVoff(void) {
-  uint8_t args[] = {0x1, 0x0};
+  const uint8_t args[] = {0x1, 0x0};
   return Adafruit_VC0706_runCommand(VC0706_TVOUT_CTRL, args, sizeof(args), 5, true);
 }
 
@@ -257,7 +257,7 @@ boolean Adafruit_VC0706_cameraFrameBuffCtrl(uint8_t command) {
 }
 
 uint32_t Adafruit_VC0706_frameLength(void) {
-  uint8_t args[] = {0x01, 0x00};
+  const uint8_t args[] = {0x01, 0x00};
   uint32_t len;
   if (!Adafruit_VC0706_runCommand(VC0706_GET_FBUF_LEN, args, sizeof(args), 9, true))
   {
@@ -304,8 +304,7 @@ uint8_t * Adafruit_VC0706_readPicture(uint16_t frameptr,uint8_t n) {
 /**************** low level commands */
 
 
-boolean Adafruit_VC0706_runCommand(uint8_t cmd, uint8_t *args, uint8_t argn, 
-			   uint8_t resplen, boolean flushflag) {
+boolean Adafruit_VC0706_runCommand(uint8_t cmd,const uint8_t *args, uint8_t argn,uint8_t resplen, boolean flushflag) {
   // flush out anything in the buffer?
   if (flushflag) {
     Adafruit_VC0706_readResponse(100, 10); 
@@ -319,7 +318,7 @@ boolean Adafruit_VC0706_runCommand(uint8_t cmd, uint8_t *args, uint8_t argn,
   return true;
 }
 
-void Adafruit_VC0706_sendCommand(uint8_t cmd, uint8_t args[], uint8_t argn) {
+void Adafruit_VC0706_sendCommand(uint8_t cmd,const uint8_t args[], uint8_t argn) {
     int i;
     UCA1_TxChar(0x56);
     UCA1_TxChar(serialNum);

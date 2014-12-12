@@ -90,8 +90,8 @@ typedef unsigned long uint32_t;
   void Adafruit_VC0706_OSD(uint8_t x, uint8_t y, char *s); // isnt supported by the chip :(
   void Adafruit_VC0706_init(void);
 
-  boolean Adafruit_VC0706_runCommand(uint8_t cmd, uint8_t args[], uint8_t argn, uint8_t resp, boolean flushflag); 
-  void Adafruit_VC0706_sendCommand(uint8_t cmd, uint8_t args[], uint8_t argn); 
+  boolean Adafruit_VC0706_runCommand(uint8_t cmdconst,const uint8_t args[], uint8_t argn, uint8_t resp, boolean flushflag); 
+  void Adafruit_VC0706_sendCommand(uint8_t cmd,const uint8_t args[], uint8_t argn); 
   uint8_t Adafruit_VC0706_readResponse(uint8_t numbytes, uint8_t timeout);
   boolean Adafruit_VC0706_verifyResponse(uint8_t command);
   void Adafruit_VC0706_printBuff(void);
