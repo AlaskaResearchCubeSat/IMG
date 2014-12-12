@@ -37,6 +37,8 @@ char *err_decode(char buf[150], unsigned short source,int err, unsigned short ar
           return "IMG : Adafruit_VC0706_frameLength returned zero";
         case ERR_IMG_BUFFER_BUSY:
           return "IMG : Error failed to lock buffer";
+        case INFO_IMG_TAKE_PIC:
+          return "IMG : taking picture";
       }
     break; 
   }

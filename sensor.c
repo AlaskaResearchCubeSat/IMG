@@ -56,6 +56,9 @@ int savepic(void){
     int resp;
     int bytesToRead,blockspace,bytesToWrite;
     
+    //generate info message 
+    report_error(ERR_LEV_DEBUG,ERR_IMG,INFO_IMG_TAKE_PIC,writePic);
+    
     //set image size
     Adafruit_VC0706_setImageSize(VC0706_640x480);
     //take the picture
