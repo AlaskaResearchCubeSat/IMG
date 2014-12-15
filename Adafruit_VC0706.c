@@ -261,7 +261,6 @@ uint32_t Adafruit_VC0706_frameLength(void) {
   uint32_t len;
   if (!Adafruit_VC0706_runCommand(VC0706_GET_FBUF_LEN, args, sizeof(args), 9, true))
   {
-    Adafruit_VC0706_printBuff();
     return 0;
   }
 
@@ -326,8 +325,6 @@ void Adafruit_VC0706_sendCommand(uint8_t cmd,const uint8_t args[], uint8_t argn)
 
     for(i=0; i<argn; i++) {
       UCA1_TxChar(args[i]);
-      //Serial.print(" 0x");
-      //Serial.print(args[i], HEX);
     }
 }
 
@@ -360,10 +357,3 @@ boolean Adafruit_VC0706_verifyResponse(uint8_t command) {
   
 }
 
-void Adafruit_VC0706_printBuff(void) {
-uint8_t i;
-  for (i = 0; i< bufferLen; i++) {
-    printf(" 0x%02X",camerabuff[i]); 
-  }
-  printf("\r\n");
-}

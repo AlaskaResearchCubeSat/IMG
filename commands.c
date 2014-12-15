@@ -113,13 +113,6 @@ int versionCmd(char **argv, unsigned short argc){
     return 0;
 }
 
-int printBuffCmd(char **argv,unsigned short argc){
-  printf("Printing camera buffer: \r\n");
-  Adafruit_VC0706_printBuff();
-  printf("\r\n Done. \r\n\n");
-}
-
-
 int takePicTask(char **argv,unsigned short argc)
 {
    unsigned short e;
@@ -161,8 +154,7 @@ const CMD_SPEC cmd_tbl[]={{"help"," [command]\r\n\t""get a list of commands or h
                          {"camoff","\r\n\t""Trun off power to the image sensor",camOffCmd},
                          {"imgsize","\r\n\t""Read the image size",imgSizeCmd},
                          {"resume","\r\n\t""resume previewing after taking a picture",resumeVidCmd},
-                         {"savepic","\r\n\t""Save a picture into the SD card",savePicCmd}, 
-                         {"pbuff","\r\n\t""Print camera buffer",printBuffCmd},
+                         {"savepic","\r\n\t""Save a picture into the SD card",savePicCmd},
                          {"version", "\r\n\t""Print camera version", versionCmd},
                          {"takepictask", "\r\n\t""Trigger take pic event", takePicTask},
                          {"loadpictask", "\r\n\t""Trigger load pic event", dumpPicTask},
