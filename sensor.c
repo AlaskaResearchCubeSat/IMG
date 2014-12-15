@@ -65,7 +65,7 @@ int savepic(void){
         //take picture failed, report error
         report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_TAKEPIC, 0);
         //return error
-        return ERR_IMG_TAKEPIC;
+        return IMG_RET_ERR_TAKEPIC;
     }
     
     //get frame length
@@ -75,7 +75,7 @@ int savepic(void){
         //no image in buffer, report error
         report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_PICSIZE, 0);
         //return error
-        return ERR_IMG_PICSIZE;
+        return IMG_RET_ERR_PICSIZE;
     }
     
     //get buffer
@@ -85,7 +85,7 @@ int savepic(void){
         //buffer is locked, report error
         report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_BUFFER_BUSY, 0);
         //return error
-        return ERR_IMG_BUFFER_BUSY;
+        return IMG_RET_ERR_BUFFER_BUSY;
     }
     
     // Set block address
@@ -121,7 +121,7 @@ int savepic(void){
                 //free buffer
                 BUS_free_buffer();
                 //return error
-                return ERR_IMG_READPIC;
+                return IMG_RET_ERR_READ_PIC_DAT;
             }
             //number of bytes to write
             bytesToWrite=bytesToRead;
@@ -167,3 +167,85 @@ int savepic(void){
     return IMG_RET_SUCCESS;
 }
 
+
+int loadpic(void){
+    int writeCount = 0;
+    int count = 0;
+    int nextBlock = 0;
+    int i,j;
+    int img_size;
+    int resp;
+    unsigned short check;
+    IMG_DAT *block;
+    unsigned char *buffer=NULL;
+    
+    //reserve buffer
+    buffer=BUS_get_buffer(CTL_TIMEOUT_DELAY,1000);
+    //check for errors
+    if(buffer==NULL){
+        //report error
+        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_LOADPIC_BUFFER,0);
+        //return error
+        return IMG_RET_ERR_BUFFER_BUSY;
+    }
+    block=(IMG_DAT*)(buffer+2);
+    //Send blocks from image
+    for(i = 0,img_size=IMG_SLOT_SIZE; i < img_size; i++){
+        //read from SD card
+        resp=mmcReadBlock(IMG_ADDR_START+readPic*IMG_SLOT_SIZE+i,buffer);
+        //check for errors
+        if(resp != MMC_SUCCESS){
+            //report error
+            report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_READ, resp);
+            //done with buffer, free it
+            BUS_free_buffer();
+            //return error
+            return IMG_RET_ERR_SD_READ;
+        }else{
+            //check if block type is correct
+            if(block->magic==((i==0)?BT_IMG_START:BT_IMG_BODY)){
+                //calculate CRC
+                check=crc16(block,sizeof(*block)-sizeof(block->CRC));
+                //check if CRC's match
+                if(check==block->CRC){
+                    // Transmit this block across SPI
+                    resp = BUS_SPI_txrx(BUS_ADDR_COMM,buffer,NULL,512 + BUS_SPI_CRC_LEN + 3);
+                    //check for errors
+                    if(resp != RET_SUCCESS){
+                        //report error
+                        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_TX, resp);
+                        //done with buffer, free it
+                        BUS_free_buffer();
+                        //return error
+                        return IMG_RET_ERR_IMG_TX;
+                    }
+                    //Toggle read LED
+                    LED_toggle(IMG_READ_LED);
+                    //get image size in blocks from first block
+                    if(i==0){
+                        //read image size from first block
+                        img_size=block->num;
+                    }
+                }else{
+                    //bad CRC, report error
+                    report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READ_INVALID_CRC,block->CRC);
+                    //done with buffer, free it
+                    BUS_free_buffer();
+                    //return error
+                    return IMG_RET_BAD_CRC;
+                }
+            }else{
+                //report error
+                report_error(ERR_LEV_ERROR,ERR_IMG,(i==0)?ERR_IMG_READ_START_BLOCK_ID:ERR_IMG_READ_BLOCK_ID,block->magic);
+                //done with buffer, free it
+                BUS_free_buffer();
+                //return error
+                return IMG_RET_BAD_BLK_HEADER;
+            }
+        }
+    }
+    //done with buffer, free it
+    BUS_free_buffer();
+    //SUCCESS!!
+    return IMG_RET_SUCCESS;
+}

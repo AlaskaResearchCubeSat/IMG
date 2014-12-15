@@ -5,6 +5,7 @@
     void sensor_on(void);
     void sensor_off(void);
     int savepic(void);
+    int loadpic(void);
 
 #endif
     

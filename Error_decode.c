@@ -39,6 +39,17 @@ char *err_decode(char buf[150], unsigned short source,int err, unsigned short ar
           return "IMG : Error failed to lock buffer";
         case INFO_IMG_TAKE_PIC:
           return "IMG : taking picture";
+        case ERR_IMG_LOADPIC_BUFFER:
+          return "IMG : buffer busy while loading picture";
+        case ERR_IMG_READ_START_BLOCK_ID:  
+          sprintf(buf, "IMG : invalid start image block ID 0x%04X",argument);
+          return buf;
+        case ERR_IMG_READ_BLOCK_ID:
+          sprintf(buf, "IMG : invalid image block ID 0x%04X",argument);
+          return buf;
+        case ERR_IMG_READ_INVALID_CRC:
+          sprintf(buf, "IMG : invalid image block CRC 0x%04X",argument);
+          return buf;
       }
     break; 
   }
