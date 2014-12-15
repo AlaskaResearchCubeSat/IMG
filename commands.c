@@ -17,9 +17,14 @@
 
 //the tvOff command, turns the video out 'off'
 int tvOffCmd(char **argv, unsigned short argc){
-  printf("Turning video off\r\n");
-  Adafruit_VC0706_TVoff();
-  printf("Video off\r\n\n");
+    printf("Turning video off\r\n");
+    if(Adafruit_VC0706_TVoff()){
+        printf("Video off\r\n");
+        return 0;
+    }else{
+        printf("Error turning video off\r\n");
+        return 1;
+    }
 }
 
 int savePicCmd(char **argv, unsigned short argc){
@@ -27,8 +32,10 @@ int savePicCmd(char **argv, unsigned short argc){
     //set picture slot to use
     writePic=0;
     //turn the sensor on
+    printf("Turning on sensor...\r\n");
     sensor_on();
     //take picture
+    printf("Taking Picture please wait\r\n");
     ret=savepic();
     //check if picture saved correctly
     if(ret==IMG_RET_SUCCESS){
@@ -43,9 +50,14 @@ int savePicCmd(char **argv, unsigned short argc){
 
 //the tvOn command, turns the video output 'on'
 int tvOnCmd(char **argv, unsigned short argc){
-  printf("Turning video on\r\n");
-  Adafruit_VC0706_TVon();
-  printf("Video on\r\n\n");
+    printf("Turning video on\r\n");
+    if(Adafruit_VC0706_TVon()){
+        printf("Video on\r\n");
+        return 0;
+    }else{
+        printf("Error turning video on\r\n");
+        return 1;
+    }
 }
 
 
@@ -53,14 +65,16 @@ int camOnCmd(char **argv, unsigned short argc){
   printf("Turning camera on\r\n");
   // Turn sensor on
   sensor_on();
-  printf("Camera on\r\n\n");
+  printf("Camera on\r\n");
+  return 0;
 }
 
 int camOffCmd(char **argv, unsigned short argc){
   printf("Turning camera off\r\n");
   // Turn sensor off
   sensor_off();
-  printf("Camera off\r\n\n");
+  printf("Camera off\r\n");
+  return 0;
 }
 
 //ask the camera how big the current picture is
@@ -88,14 +102,20 @@ int imgSizeCmd(char **argv, unsigned short argc){
         break;
     }
     printf("Image size: %s\r\n",sptr);
-    printf("buffer contents size in bytes is: %u\r\n\n", jpglen);
+    printf("buffer contents size in bytes is: %u\r\n", jpglen);
+    return 0;
 }
 
 // resumes video feed to camera, picture data will no longer be available in the camera buffer
 int resumeVidCmd(char **argv, unsigned short argc){
-  printf("Resuming video..\r\n");
-  Adafruit_VC0706_resumeVideo();
-  printf("Video resumed.\r\n\n");
+    printf("Resuming video..\r\n");
+    if(Adafruit_VC0706_resumeVideo()){
+        printf("Video resumed.\r\n");
+        return 0;
+    }else{
+        printf("Error resuming video\r\n");
+        return 1;
+    }
 }
 
 int versionCmd(char **argv, unsigned short argc){
@@ -134,6 +154,7 @@ int dumpPicTask(char **argv,unsigned short argc)
 {
   //Trigger the load picture event
   ctl_events_set_clear(&IMG_events, IMG_EV_LOADPIC,0);
+  return 0;
 }
 
 int picloc_Cmd(char **argv,unsigned short argc){
