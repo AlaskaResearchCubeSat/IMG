@@ -50,6 +50,9 @@ char *err_decode(char buf[150], unsigned short source,int err, unsigned short ar
         case ERR_IMG_READ_INVALID_CRC:
           sprintf(buf, "IMG : invalid image block CRC 0x%04X",argument);
           return buf;
+        case ERR_IMG_BEACON_SD_READ:
+          sprintf(buf, "IMG : Error reading SD card for beacon packet, %s (%i)",SD_error_str(argument),argument);
+          return buf;
       }
     break; 
   }

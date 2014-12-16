@@ -62,13 +62,64 @@ int SUB_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned
   return ERR_UNKNOWN_CMD;
 }
 
+unsigned int img_make_beacon(IMG_BEACON *dest){
+    int i,res;
+    char count;
+    unsigned short check;
+    unsigned char *buffer=NULL;
+    IMG_DAT *block;
+    //check if card is initialized
+    if(mmc_is_init() != MMC_SUCCESS){
+        //attempt to reinitialize the card
+        dest->sd_stat = mmcReInit_card();
+    }else{
+        //everything is awesome
+        dest->sd_stat = MMC_SUCCESS;
+    }
+
+    // count pictures on SD card
+    //TODO: make this better
+    buffer=BUS_get_buffer(CTL_TIMEOUT_DELAY,1000);
+    if(buffer!=NULL){
+        for(i = 0,count=0; i < NUM_IMG_SLOTS; i++){
+            //read from SD card
+            res=mmcReadBlock(IMG_ADDR_START+i*IMG_SLOT_SIZE,buffer);
+            if(res==MMC_SUCCESS){
+                block=(IMG_DAT*)buffer;
+                if(block->magic==BT_IMG_START){
+                    //calculate CRC
+                    check=crc16(block,sizeof(*block)-sizeof(block->CRC));
+                    //check if CRC's match
+                    if(check==block->CRC){
+                        //incrament picture count
+                        count++;
+                    }
+                }
+            }else{
+                report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_BEACON_SD_READ,res);
+            }
+        }
+        BUS_free_buffer();
+        //set image number
+        dest->num = count;
+    }else{
+        dest->num=-1;
+    }
+
+    //get picture time
+    dest->img_time=BUS_get_alarm_time(BUS_ALARM_0);
+
+    //TODO: fill in flags
+    dest->flags=0;
+
+    return sizeof(IMG_BEACON);
+}
+
 void sub_events(void *p) __toplevel{
   unsigned int e,len;
   int i;
-  char count;
-  char *buffer=NULL;
   unsigned char buf[10],*ptr;
-  extern unsigned char async_addr;
+    
   for(;;){
     e=ctl_events_wait(CTL_EVENT_WAIT_ANY_EVENTS_WITH_AUTO_CLEAR,&SUB_events,SUB_EV_ALL,CTL_TIMEOUT_NONE,0);
     if(e&SUB_EV_PWR_OFF){
@@ -81,33 +132,14 @@ void sub_events(void *p) __toplevel{
     }
     if(e&SUB_EV_SEND_STAT){
       //send status
-      //puts("Sending status\r");
-      //setup packet 
-      if(mmc_is_init() == MMC_SUCCESS){
-        buf[0] = 1;
-      }else{
-        buf[0] = 0;
-      }
-
-
-      // count pictures on SD card
-      buffer=BUS_get_buffer(CTL_TIMEOUT_DELAY,10000);
-      for(i = 0; i < 25500; i+=100)
-      {
-        //read from SD card
-        mmcReadBlock(i,(unsigned char*)buffer);
-        
-        if(buffer[0] == 255)
-          count++;
-      }
-      BUS_free_buffer();
-      buf[1] = count;
-
       
+      //setup packet
       ptr=BUS_cmd_init(buf,CMD_IMG_STAT);
-      //TODO: fill in telemetry data
+      //fill in beacon packet
+      len=img_make_beacon((IMG_BEACON*)ptr);
+      
       //send command
-      BUS_cmd_tx(BUS_ADDR_CDH,buf,2,0,BUS_I2C_SEND_FOREGROUND);
+      BUS_cmd_tx(BUS_ADDR_CDH,buf,len,0,BUS_I2C_SEND_FOREGROUND);
     }
     if(e&SUB_EV_SPI_DAT){
       puts("SPI data recived:\r");

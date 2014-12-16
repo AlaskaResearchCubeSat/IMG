@@ -25,6 +25,7 @@
     //Block ID's for image blocks
     enum{BT_IMG_START=0x990F,BT_IMG_BODY=0x99F0};
 
+    //image data block structure
     typedef struct{
         unsigned short magic;
         unsigned char  num;
@@ -33,10 +34,17 @@
         unsigned short CRC;
     }IMG_DAT;
         
+    //image beacon structure
+    typedef struct{
+        int sd_stat;
+        ticker img_time;
+        unsigned char num,flags;
+    }IMG_BEACON;
 
     void cmd_parse(void *p);
     void sub_events(void *p);
     void img_events(void *p0);  
+    unsigned int img_make_beacon(IMG_BEACON *dest);
 
 #endif
     

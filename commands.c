@@ -164,6 +164,17 @@ int picloc_Cmd(char **argv,unsigned short argc){
     return 0;
 }
 
+int beacon_Cmd(char **argv,unsigned short argc){
+    IMG_BEACON dat;
+    //make beacon data
+    img_make_beacon(&dat);
+    //print data
+    printf("sd_stat = %s (%i)\r\n",(dat.sd_stat==MMC_SUCCESS)?"Initialized":SD_error_str(dat.sd_stat),dat.sd_stat);
+    printf("img_time = %lu\r\n",dat.img_time);
+    printf("num = %u\r\n",(unsigned short)dat.num);
+    printf("flags = 0x%02X\r\n",(unsigned short)dat.flags);
+    return 0;
+}
 
 
 //table of commands with help
@@ -180,5 +191,6 @@ const CMD_SPEC cmd_tbl[]={{"help"," [command]\r\n\t""get a list of commands or h
                          {"takepictask", "\r\n\t""Trigger take pic event", takePicTask},
                          {"loadpictask", "\r\n\t""Trigger load pic event", dumpPicTask},
                          {"picloc", "\r\n\t""Print sector for picture storage", picloc_Cmd},
+                         {"beacon","\r\n\t""Generate and print beacon packet",beacon_Cmd},
                          //end of list
                          {NULL,NULL,NULL}};
