@@ -180,6 +180,9 @@ void sub_events(void *p) __toplevel{
     if(e&SUB_EV_SPI_ERR_CRC){
       puts("SPI bad CRC\r");
     }
+    if(e&SUB_EV_SPI_ERR_BUSY){
+      puts("SPI buffer busy\r");
+    }
 
   }
 }
