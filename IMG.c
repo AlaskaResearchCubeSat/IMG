@@ -20,7 +20,6 @@ CTL_EVENT_SET_t cmd_parse_evt;
 CTL_EVENT_SET_t IMG_events;
 
 int readPic,writePic;
-unsigned char srcAddr;
 
 //handle subsystem specific commands
 int SUB_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned short len){
@@ -30,6 +29,11 @@ int SUB_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned
   switch(cmd){
 
     case CMD_IMG_TAKE_TIMED_PIC:
+        //check packet length
+        if(len!=4){
+            //packet length is incorrect
+            return ERR_PK_LEN;
+        }
         //read time
         time =dat[3];
         time|=((ticker)dat[2])<<8;
@@ -42,16 +46,23 @@ int SUB_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned
         return RET_SUCCESS;
         //Handle imager commands
     case CMD_IMG_TAKE_PIC_NOW:
-      // Set the picture slot to the sent value
-      writePic = dat[0];
+      //check packet length
+      if(len!=0){
+        //packet length is incorrect
+        return ERR_PK_LEN;
+      }
       // Call the take picture event
       ctl_events_set_clear(&IMG_events,IMG_EV_TAKEPIC,0);
       //Return Success
       return RET_SUCCESS;
     case CMD_IMG_READ_PIC:
+      //check packet length
+      if(len!=1){
+        //packet length is incorrect
+        return ERR_PK_LEN;
+      }
       // Set the picture slot to the sent value
       readPic = dat[0];
-      srcAddr = src;
       // Call the load picture event
       ctl_events_set_clear(&IMG_events,IMG_EV_LOADPIC,0);
 
