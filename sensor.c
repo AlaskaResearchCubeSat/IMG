@@ -51,6 +51,7 @@ int savepic(void){
     int j;
     unsigned long baseAddr;
     int blockIdx;
+    unsigned char Num;
     unsigned char* buffer=NULL;
     int resp;
     int bytesToRead,blockspace,bytesToWrite;
@@ -90,6 +91,15 @@ int savepic(void){
     
     // Set block address
     baseAddr = IMG_ADDR_START + writePic * IMG_SLOT_SIZE;
+    //advance picture slot
+    writePic++;
+    //check for wrap around
+    if(writePic>=NUM_IMG_SLOTS){
+        //wrap around to zero
+        writePic=0;
+    }
+    //advance picture number
+    Num=picNum++;
     
     for(i=0,bytesToRead=0,bytesToWrite=0,blockIdx=0;i<jpglen;blockIdx++){
         //check for unwritten bytes
@@ -129,7 +139,7 @@ int savepic(void){
             blockspace=sizeof(block->dat)-(j);
             //check available space in block
             if(bytesToWrite>blockspace){
-                //only read enough to fill the block
+                //only write enough to fill the block
                 bytesToWrite=blockspace;
             }
             //copy into buffer
@@ -142,7 +152,7 @@ int savepic(void){
         //set block type
         block->magic=(blockIdx==0)?BT_IMG_START:BT_IMG_BODY;
         //set image number
-        block->num=writePic;        //TODO: do this better somehow
+        block->num=Num;
         //set block number
         block->block=(blockIdx==0)?(jpglen+sizeof(block->dat)-1)/sizeof(block->dat):blockIdx;
         //calculate CRC

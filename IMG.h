@@ -18,6 +18,7 @@
 
     //read and write slots for picture
     extern int readPic,writePic;
+    extern unsigned char picNum;
     
     //Event set for imager events
     extern CTL_EVENT_SET_t IMG_events;
@@ -34,6 +35,9 @@
         unsigned short CRC;
     }IMG_DAT;
         
+    //flags for beacon data    
+    enum{IMG_BEACON_FLAGS_HAVE_PIC=1<<0,IMG_BEACON_FLAGS_PIC_SCH=1<<1};
+            
     //image beacon structure
     typedef struct{
         int sd_stat;

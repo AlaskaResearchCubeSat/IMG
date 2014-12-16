@@ -136,8 +136,6 @@ int versionCmd(char **argv, unsigned short argc){
 int takePicTask(char **argv,unsigned short argc)
 {
    unsigned short e;
-   //set picture slot
-   writePic=0;
    //Trigger the takepic event and clear pic taken event
    ctl_events_set_clear(&IMG_events, IMG_EV_TAKEPIC,IMG_EV_PIC_TAKEN);
    //wait for picture to complete, set a timeout of 15 sec
@@ -159,7 +157,7 @@ int dumpPicTask(char **argv,unsigned short argc)
 
 int picloc_Cmd(char **argv,unsigned short argc){
     //savepic command always saves at IMG_ADDR_START
-    printf("%i\r\n",IMG_ADDR_START);
+    printf("%i\r\n",IMG_ADDR_START+IMG_SLOT_SIZE*writePic);
     //everything is always good
     return 0;
 }

@@ -20,6 +20,7 @@ CTL_EVENT_SET_t cmd_parse_evt;
 CTL_EVENT_SET_t IMG_events;
 
 int readPic,writePic;
+unsigned char picNum;
 
 //handle subsystem specific commands
 int SUB_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned short len){
@@ -77,6 +78,7 @@ unsigned int img_make_beacon(IMG_BEACON *dest){
     int i,res;
     char count;
     unsigned short check;
+    unsigned short Num;
     unsigned char *buffer=NULL;
     IMG_DAT *block;
     //check if card is initialized
@@ -88,11 +90,14 @@ unsigned int img_make_beacon(IMG_BEACON *dest){
         dest->sd_stat = MMC_SUCCESS;
     }
 
+    //Initialize flags
+    dest->flags=0;
+    
     // count pictures on SD card
     //TODO: make this better
     buffer=BUS_get_buffer(CTL_TIMEOUT_DELAY,1000);
     if(buffer!=NULL){
-        for(i = 0,count=0; i < NUM_IMG_SLOTS; i++){
+        for(i = 0,Num=0; i < NUM_IMG_SLOTS; i++){
             //read from SD card
             res=mmcReadBlock(IMG_ADDR_START+i*IMG_SLOT_SIZE,buffer);
             if(res==MMC_SUCCESS){
@@ -102,8 +107,11 @@ unsigned int img_make_beacon(IMG_BEACON *dest){
                     check=crc16(block,sizeof(*block)-sizeof(block->CRC));
                     //check if CRC's match
                     if(check==block->CRC){
-                        //incrament picture count
-                        count++;
+                        dest->flags|=IMG_BEACON_FLAGS_HAVE_PIC;
+                        //check if picture number is greater than Num
+                        if(block->num>Num){
+                            Num=block->num;
+                        }
                     }
                 }
             }else{
@@ -112,16 +120,20 @@ unsigned int img_make_beacon(IMG_BEACON *dest){
         }
         BUS_free_buffer();
         //set image number
-        dest->num = count;
+        dest->num = Num;
     }else{
         dest->num=-1;
     }
 
     //get picture time
     dest->img_time=BUS_get_alarm_time(BUS_ALARM_0);
+    
+    //check if picture is scheduled
+    if(ERR_BUSY==BUS_alarm_is_free(BUS_ALARM_0)){
+        //A picture is scheduled
+        dest->flags|=IMG_BEACON_FLAGS_PIC_SCH;
+    }
 
-    //TODO: fill in flags
-    dest->flags=0;
 
     return sizeof(IMG_BEACON);
 }
@@ -178,12 +190,11 @@ void img_events(void *p0) __toplevel{
 
   readPic = 0;
   writePic = 0;
+  picNum=0;
 
   for(;;){
     e=ctl_events_wait(CTL_EVENT_WAIT_ANY_EVENTS_WITH_AUTO_CLEAR,&IMG_events,IMG_EV_ALL,CTL_TIMEOUT_NONE,0);
     if(e&IMG_EV_TAKEPIC){// Turn camera on, and then take picture
-        //set picture slot to use
-        writePic=0;
         //set in progress event
         ctl_events_set_clear(&IMG_events,IMG_EV_INPROGRESS,0);
         //turn the sensor on
