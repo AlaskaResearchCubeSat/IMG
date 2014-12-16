@@ -9,7 +9,7 @@
 #include <UCA1_uart.h>
 #include <Error.h>
 #include <commandLib.h>
-#include "SDlib.h"
+#include <SDlib.h>
 #include "IMG_errors.h"
 #include "Adafruit_VC0706.h"
 #include "sensor.h"
@@ -174,6 +174,23 @@ int beacon_Cmd(char **argv,unsigned short argc){
     return 0;
 }
 
+int eraseImg_Cmd(char **argv,unsigned short argc){
+    int ret;
+    //erase data from SD card
+    ret=mmcErase(IMG_ADDR_START,IMG_ADDR_END);
+    //check return value
+    if(ret==MMC_SUCCESS){
+        //clear imager variables
+        writePic = 0;
+        picNum=0;
+        //print message
+        printf("Picture data erased\r\n");
+    }else{
+        //print error
+        printf("Error erase failed %s\r\n",SD_error_str(ret));
+    }
+    return 0;
+}
 
 //table of commands with help
 const CMD_SPEC cmd_tbl[]={{"help"," [command]\r\n\t""get a list of commands or help on a spesific command.",helpCmd},
@@ -190,5 +207,6 @@ const CMD_SPEC cmd_tbl[]={{"help"," [command]\r\n\t""get a list of commands or h
                          {"loadpictask", "\r\n\t""Trigger load pic event", dumpPicTask},
                          {"picloc", "\r\n\t""Print sector for picture storage", picloc_Cmd},
                          {"beacon","\r\n\t""Generate and print beacon packet",beacon_Cmd},
+                         {"eraseImg","\r\n\t""Erase image memory",eraseImg_Cmd},
                          //end of list
                          {NULL,NULL,NULL}};
