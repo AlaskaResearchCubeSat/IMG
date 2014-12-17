@@ -297,7 +297,7 @@ int loadpic(void){
     //set source address
     buffer[0]=UCB0I2COA;
     // Transmit this block across SPI
-    resp = BUS_SPI_txrx(BUS_ADDR_COMM,buffer,NULL,sizeof(*block) + BUS_SPI_CRC_LEN + 2);
+    resp = BUS_SPI_txrx(BUS_ADDR_COMM,buffer,NULL,sizeof(IMG_DAT) + 2);
     //check for errors
     if(resp != RET_SUCCESS){
         //report error
