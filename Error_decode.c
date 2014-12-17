@@ -56,6 +56,13 @@ char *err_decode(char buf[150], unsigned short source,int err, unsigned short ar
         case ERR_IMG_PIC_NOT_FOUND:
           sprintf(buf, "IMG : Error picture number %i not found",argument);
           return buf;
+        case ERR_IMG_INVALID_BLOCK_NUM:
+          sprintf(buf, "IMG : Error invalid block number %i for image %i",0x00FF&argument,argument>>8);
+          return buf;
+        case ERR_IMG_READ_BLOCK_NUM_MISMATCH:
+          sprintf(buf, "IMG : Error incorrect block number %i expected %i",0x00FF&argument,argument>>8);
+          return buf;
+            
       }
     break; 
   }

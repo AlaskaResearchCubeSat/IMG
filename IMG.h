@@ -18,7 +18,7 @@
 
     //read and write slots for picture
     extern int readPic,writePic;
-    extern unsigned char picNum;
+    extern unsigned char picNum,readBlock;
     
     //Event set for imager events
     extern CTL_EVENT_SET_t IMG_events;

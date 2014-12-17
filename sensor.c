@@ -240,10 +240,19 @@ int loadpic(void){
         //return error
         return IMG_RET_ERR_PIC_NOT_FOUND;  
     }
-    //Send blocks from image
-    for(i = 0,img_size=IMG_SLOT_SIZE; i < img_size; i++){
+    //check block number
+    if(readBlock>=block->block){
+        //not found, report error
+        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_INVALID_BLOCK_NUM,(0x00FF&readBlock)|(readPic<<8));
+        //done with buffer, free it
+        BUS_free_buffer();
+        //return error
+        return IMG_RET_ERR_INVALID_BLOCK_NUM;  
+    }   
+    //first block already read so no reason to read it again
+    if(readBlock!=0){
         //read from SD card
-        resp=mmcReadBlock(imgStart+i,(unsigned char*)block);
+        resp=mmcReadBlock(imgStart+readBlock,(unsigned char*)block);
         //check for errors
         if(resp != MMC_SUCCESS){
             //report error
@@ -252,53 +261,55 @@ int loadpic(void){
             BUS_free_buffer();
             //return error
             return IMG_RET_ERR_SD_READ;
-        }else{
-            //check if block type is correct
-            if(block->magic==((i==0)?BT_IMG_START:BT_IMG_BODY)){
-                //calculate CRC
-                check=crc16(block,sizeof(*block)-sizeof(block->CRC));
-                //check if CRC's match
-                if(check==block->CRC){
-                    //set block type
-                    buffer[1]=SPI_IMG_DAT;
-                    //set source address
-                    buffer[0]=UCB0I2COA;
-                    // Transmit this block across SPI
-                    resp = BUS_SPI_txrx(BUS_ADDR_COMM,buffer,NULL,sizeof(*block) + BUS_SPI_CRC_LEN + 2);
-                    //check for errors
-                    if(resp != RET_SUCCESS){
-                        //report error
-                        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_TX, resp);
-                        //done with buffer, free it
-                        BUS_free_buffer();
-                        //return error
-                        return IMG_RET_ERR_IMG_TX;
-                    }
-                    //Toggle read LED
-                    LED_toggle(IMG_READ_LED);
-                    //get image size in blocks from first block
-                    if(i==0){
-                        //read image size from first block
-                        img_size=block->num;
-                    }
-                }else{
-                    //bad CRC, report error
-                    report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READ_INVALID_CRC,block->CRC);
-                    //done with buffer, free it
-                    BUS_free_buffer();
-                    //return error
-                    return IMG_RET_BAD_CRC;
-                }
-            }else{
-                //report error
-                report_error(ERR_LEV_ERROR,ERR_IMG,(i==0)?ERR_IMG_READ_START_BLOCK_ID:ERR_IMG_READ_BLOCK_ID,block->magic);
-                //done with buffer, free it
-                BUS_free_buffer();
-                //return error
-                return IMG_RET_BAD_BLK_HEADER;
-            }
         }
+        //check if block type is correct
+        if(block->magic!=BT_IMG_BODY){
+            //report error
+            report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READ_BLOCK_ID,block->magic);
+            //done with buffer, free it
+            BUS_free_buffer();
+            //return error
+            return IMG_RET_BAD_BLK_HEADER;
+        }
+        //calculate CRC
+        check=crc16(block,sizeof(*block)-sizeof(block->CRC));
+        //check if CRC's match
+        if(check!=block->CRC){
+            //bad CRC, report error
+            report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READ_INVALID_CRC,block->CRC);
+            //done with buffer, free it
+            BUS_free_buffer();
+            //return error
+            return IMG_RET_BAD_CRC;
+        }
+        //check block number
+        if(readBlock!=block->block){
+            //report error
+            report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READ_BLOCK_NUM_MISMATCH,((unsigned short)block->block)|(readBlock<<8));
+            //done with buffer, free it
+            BUS_free_buffer();
+            //return error
+            return IMG_RET_READ_BLOCK_NUM_MISMATCH;
+        }
+    }         
+    //The correct block was found, transmit
+    //set block type
+    buffer[1]=SPI_IMG_DAT;
+    //set source address
+    buffer[0]=UCB0I2COA;
+    // Transmit this block across SPI
+    resp = BUS_SPI_txrx(BUS_ADDR_COMM,buffer,NULL,sizeof(*block) + BUS_SPI_CRC_LEN + 2);
+    //check for errors
+    if(resp != RET_SUCCESS){
+        //report error
+        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_TX, resp);
+        //done with buffer, free it
+        BUS_free_buffer();
+        //return error
+        return IMG_RET_ERR_IMG_TX;
     }
+    //Toggle read LED
+    LED_toggle(IMG_READ_LED);
     //done with buffer, free it
     BUS_free_buffer();
     //SUCCESS!!

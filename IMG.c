@@ -20,7 +20,7 @@ CTL_EVENT_SET_t cmd_parse_evt;
 CTL_EVENT_SET_t IMG_events;
 
 int readPic,writePic;
-unsigned char picNum;
+unsigned char picNum,readBlock;
 
 //handle subsystem specific commands
 int SUB_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned short len){
@@ -58,12 +58,14 @@ int SUB_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned
       return RET_SUCCESS;
     case CMD_IMG_READ_PIC:
       //check packet length
-      if(len!=1){
+      if(len!=2){
         //packet length is incorrect
         return ERR_PK_LEN;
       }
-      // Set the picture slot to the sent value
+      // Get the picture to read
       readPic = dat[0];
+      // Get the block to read
+      readBlock = dat[1];
       // Call the load picture event
       ctl_events_set_clear(&IMG_events,IMG_EV_LOADPIC,0);
 
