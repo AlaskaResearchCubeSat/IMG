@@ -10,6 +10,7 @@
 #include <Error.h>
 #include <commandLib.h>
 #include <SDlib.h>
+#include <crc.h>
 #include "IMG_errors.h"
 #include "Adafruit_VC0706.h"
 #include "sensor.h"
@@ -192,6 +193,54 @@ int eraseImg_Cmd(char **argv,unsigned short argc){
     return 0;
 }
 
+int pictlist_Cmd(char **argv,unsigned short argc){
+    IMG_DAT *block;
+    int found,i,num;
+    int res;
+    unsigned short check;
+    // locate pictures on SD card
+    block=(IMG_DAT*)BUS_get_buffer(CTL_TIMEOUT_DELAY,1000);
+    if(block==NULL){
+        printf("Error: Buffer busy\r\n");
+        return -2;
+    }
+    //look at all the images
+    for(i = 0,num=0; i < NUM_IMG_SLOTS; i++){
+        //read from SD card
+        res=mmcReadBlock(IMG_ADDR_START+i*IMG_SLOT_SIZE,(unsigned char*)block);
+        if(res==MMC_SUCCESS){
+            //check block type
+            if(block->magic==BT_IMG_START){
+                //calculate CRC
+                check=crc16(block,sizeof(*block)-sizeof(block->CRC));
+                //check if CRC's match
+                if(check==block->CRC){
+                    num++;
+                    //print info
+                    printf("slot #%i : Image #%i, %i blocks\r\n",i,block->num,block->block);
+                }
+            }
+        }else{
+            printf("Error Reading from SD card %s\r\n",SD_error_str(res));
+            break;
+        }
+    }
+    BUS_free_buffer();
+    //check how many images were found
+    switch(num){
+        case 0:
+            printf("No images found in memory\r\n");
+        break;
+        case 1:
+            printf("1 image in memory\r\n");
+        break;
+        default:
+            printf("There are %i images in memory\r\n",num);
+        break;
+    }
+    return 0;
+}
+
 //table of commands with help
 const CMD_SPEC cmd_tbl[]={{"help"," [command]\r\n\t""get a list of commands or help on a spesific command.",helpCmd},
                          CTL_COMMANDS,ARC_COMMANDS,ERROR_COMMANDS,MMC_COMMANDS,
@@ -208,5 +257,6 @@ const CMD_SPEC cmd_tbl[]={{"help"," [command]\r\n\t""get a list of commands or h
                          {"picloc", "\r\n\t""Print sector for picture storage", picloc_Cmd},
                          {"beacon","\r\n\t""Generate and print beacon packet",beacon_Cmd},
                          {"eraseImg","\r\n\t""Erase image memory",eraseImg_Cmd},
+                         {"pictlist","\r\n\t""List pictures from the SD card",pictlist_Cmd},
                          //end of list
                          {NULL,NULL,NULL}};
