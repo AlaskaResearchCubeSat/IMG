@@ -30,8 +30,6 @@ int tvOffCmd(char **argv, unsigned short argc){
 
 int savePicCmd(char **argv, unsigned short argc){
     int ret;
-    //set picture slot to use
-    writePic=0;
     //turn the sensor on
     printf("Turning on sensor...\r\n");
     sensor_on();
