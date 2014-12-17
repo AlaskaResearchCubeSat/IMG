@@ -208,7 +208,6 @@ int loadpic(void){
         //read from SD card
         resp=mmcReadBlock(imgStart,(unsigned char*)block);
         if(resp==MMC_SUCCESS){
-            block=(IMG_DAT*)buffer;
             if(block->magic==BT_IMG_START){
                 //calculate CRC
                 check=crc16(block,sizeof(*block)-sizeof(block->CRC));
