@@ -184,8 +184,9 @@ int loadpic(void){
     int nextBlock = 0;
     int i,j;
     int img_size;
-    int resp;
+    int resp,found;
     unsigned short check;
+    unsigned long imgStart;
     IMG_DAT *block;
     unsigned char *buffer=NULL;
     
@@ -198,11 +199,51 @@ int loadpic(void){
         //return error
         return IMG_RET_ERR_BUFFER_BUSY;
     }
+    //address for imager data
     block=(IMG_DAT*)(buffer+2);
+    //locate image in memory
+    for(i = 0,found=0; i < NUM_IMG_SLOTS; i++){
+        //calculate address
+        imgStart=IMG_ADDR_START+i*IMG_SLOT_SIZE;
+        //read from SD card
+        resp=mmcReadBlock(imgStart,(unsigned char*)block);
+        if(resp==MMC_SUCCESS){
+            block=(IMG_DAT*)buffer;
+            if(block->magic==BT_IMG_START){
+                //calculate CRC
+                check=crc16(block,sizeof(*block)-sizeof(block->CRC));
+                //check if CRC's match
+                if(check==block->CRC){
+                    //check if picture number matches
+                    if(block->num==readPic){
+                        //set found to be true
+                        found=1;
+                        //exit loop
+                        break;
+                    }
+                }
+            }
+        }else{
+            report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_READ,resp);
+            //done with buffer, free it
+            BUS_free_buffer();
+            //return error
+            return IMG_RET_ERR_SD_READ;
+        }
+    }
+    //check if picture was found
+    if(!found){
+        //not found, report error
+        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_PIC_NOT_FOUND,readPic);
+        //done with buffer, free it
+        BUS_free_buffer();
+        //return error
+        return IMG_RET_ERR_PIC_NOT_FOUND;  
+    }
     //Send blocks from image
     for(i = 0,img_size=IMG_SLOT_SIZE; i < img_size; i++){
         //read from SD card
-        resp=mmcReadBlock(IMG_ADDR_START+readPic*IMG_SLOT_SIZE+i,buffer);
+        resp=mmcReadBlock(imgStart+i,(unsigned char*)block);
         //check for errors
         if(resp != MMC_SUCCESS){
             //report error
@@ -218,8 +259,12 @@ int loadpic(void){
                 check=crc16(block,sizeof(*block)-sizeof(block->CRC));
                 //check if CRC's match
                 if(check==block->CRC){
+                    //set block type
+                    buffer[1]=SPI_IMG_DAT;
+                    //set source address
+                    buffer[0]=UCB0I2COA;
                     // Transmit this block across SPI
-                    resp = BUS_SPI_txrx(BUS_ADDR_COMM,buffer,NULL,512 + BUS_SPI_CRC_LEN + 3);
+                    resp = BUS_SPI_txrx(BUS_ADDR_COMM,buffer,NULL,sizeof(*block) + BUS_SPI_CRC_LEN + 2);
                     //check for errors
                     if(resp != RET_SUCCESS){
                         //report error
