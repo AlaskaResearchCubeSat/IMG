@@ -203,6 +203,8 @@ int pictlist_Cmd(char **argv,unsigned short argc){
         printf("Error: Buffer busy\r\n");
         return -2;
     }
+    //print header
+    printf("Slot\tImage\tBlocks\t Timestamp\r\n");
     //look at all the images
     for(i = 0,num=0; i < NUM_IMG_SLOTS; i++){
         //read from SD card
@@ -218,7 +220,7 @@ int pictlist_Cmd(char **argv,unsigned short argc){
                     //time is at the beginning of data
                     time=*(ticker*)block->dat;
                     //print info
-                    printf("slot #%i : Image #%i, %i blocks timestamp : %lu\r\n",i,block->num,block->block,time);
+                    printf("%4i\t%5i\t%6i\t%10lu\r\n",i,block->num,block->block,time);
                 }
             }
         }else{
@@ -230,13 +232,13 @@ int pictlist_Cmd(char **argv,unsigned short argc){
     //check how many images were found
     switch(num){
         case 0:
-            printf("No images found in memory\r\n");
+            printf("\r\nNo images found in memory\r\n");
         break;
         case 1:
-            printf("1 image in memory\r\n");
+            printf("\r\n1 image in memory\r\n");
         break;
         default:
-            printf("There are %i images in memory\r\n",num);
+            printf("\r\nThere are %i images in memory\r\n",num);
         break;
     }
     return 0;
