@@ -195,6 +195,7 @@ int pictlist_Cmd(char **argv,unsigned short argc){
     IMG_DAT *block;
     int found,i,num;
     int res;
+    ticker time;
     unsigned short check;
     // locate pictures on SD card
     block=(IMG_DAT*)BUS_get_buffer(CTL_TIMEOUT_DELAY,1000);
@@ -214,8 +215,10 @@ int pictlist_Cmd(char **argv,unsigned short argc){
                 //check if CRC's match
                 if(check==block->CRC){
                     num++;
+                    //time is at the beginning of data
+                    time=*(ticker*)block->dat;
                     //print info
-                    printf("slot #%i : Image #%i, %i blocks\r\n",i,block->num,block->block);
+                    printf("slot #%i : Image #%i, %i blocks timestamp : %lu\r\n",i,block->num,block->block,time);
                 }
             }
         }else{

@@ -66,6 +66,8 @@ function [data]=Storepic(com,baud,cmd)
         blocks=double(block(4));
         
         fprintf('Reading image %i in %i blocks\n',num,blocks);
+        time=typecast(block(5:8),'uint32');
+        fprintf('Image taken at time %u\n',time);
 
         %allocate array for image data
         data=zeros(1,506*blocks,'uint8');
@@ -105,11 +107,11 @@ function [data]=Storepic(com,baud,cmd)
         
         %open image file
         imgout = fopen(fname,'w');
-        %write data to file
-        count=fwrite(imgout, data);
+        %write data to file skip time
+        count=fwrite(imgout, data(5:end));
         %close file
         fclose(imgout);
-        if(count~=length(data))
+        if(count~=length(data(5:end)))
             error('Failed to write image data to file');
         end
     catch err

@@ -54,6 +54,7 @@ int savepic(void){
     unsigned char Num;
     unsigned char* buffer=NULL;
     int resp;
+    ticker pictTime;
     int bytesToRead,blockspace,bytesToWrite;
     
     //generate info message 
@@ -68,6 +69,8 @@ int savepic(void){
         //return error
         return IMG_RET_ERR_TAKEPIC;
     }
+    //capture the time that the picture was taken
+    pictTime=get_ticker_time();
     
     //get frame length
     jpglen = Adafruit_VC0706_frameLength();
@@ -101,17 +104,24 @@ int savepic(void){
     //advance picture number
     Num=picNum++;
     
-    for(i=0,bytesToRead=0,bytesToWrite=0,blockIdx=0;i<jpglen;blockIdx++){
-        //check for unwritten bytes
-        if(bytesToRead>bytesToWrite){
-            //copy into buffer
-            memcpy(block->dat, buffer+bytesToWrite, bytesToRead-bytesToWrite);
-            //add bytes to image index
-            i+=bytesToRead-bytesToWrite;
-            //set block index
-            j=bytesToRead-bytesToWrite;
-        }else{
-            j=0;
+    for(i=0,blockIdx=0;i<jpglen;blockIdx++){
+        //check if this is the first block
+        if(i==0){
+            //add time to the beginning of the first block
+            memcpy(block->dat,&pictTime,sizeof(pictTime));
+            j=sizeof(pictTime);
+        }else{//There are never unwritten bytes for the first block
+            //check for unwritten bytes
+            if(bytesToRead>bytesToWrite){
+                //copy into buffer
+                memcpy(block->dat, buffer+bytesToWrite, bytesToRead-bytesToWrite);
+                //add bytes to image index
+                i+=bytesToRead-bytesToWrite;
+                //set block index
+                j=bytesToRead-bytesToWrite;
+            }else{
+                j=0;
+            }
         }
         for(;j<sizeof(block->dat) && i<jpglen;){
             //check if there is more than SENSOR_READ_BLOCK_SIZE bytes to read
