@@ -163,6 +163,9 @@ void sub_events(void *p) __toplevel{
       //fill in beacon packet
       len=img_make_beacon((IMG_BEACON*)ptr);
       
+      //wait a bit so packets don't clash
+      ctl_timeout_wait(ctl_get_current_time()+17);
+      
       //send command
       BUS_cmd_tx(BUS_ADDR_CDH,buf,len,0,BUS_I2C_SEND_FOREGROUND);
     }
