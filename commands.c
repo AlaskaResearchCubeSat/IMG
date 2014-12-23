@@ -185,6 +185,8 @@ int eraseImg_Cmd(char **argv,unsigned short argc){
         picNum=0;
         //print message
         printf("Picture data erased\r\n");
+        //refresh status info
+        status_refresh();
     }else{
         //print error
         printf("Error erase failed %s\r\n",SD_error_str(ret));
