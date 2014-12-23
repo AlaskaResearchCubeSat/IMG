@@ -34,21 +34,11 @@
         unsigned char dat[506];
         unsigned short CRC;
     }IMG_DAT;
-        
-    //flags for beacon data    
-    enum{IMG_BEACON_FLAGS_HAVE_PIC=1<<0,IMG_BEACON_FLAGS_PIC_SCH=1<<1};
             
-    //image beacon structure
-    typedef struct{
-        int sd_stat;
-        ticker img_time;
-        unsigned char num,flags;
-    }IMG_BEACON;
 
     void cmd_parse(void *p);
     void sub_events(void *p);
     void img_events(void *p0);  
-    unsigned int img_make_beacon(IMG_BEACON *dest);
 
 #endif
     

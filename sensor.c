@@ -9,6 +9,7 @@
 #include <Error.h>
 #include <SDlib.h>
 #include <crc.h>
+#include "status.h"
 
 //Size in bytes of block to read from sensor
 #define SENSOR_READ_BLOCK_SIZE          (64)
@@ -60,6 +61,8 @@ int savepic(void){
     //generate info message 
     report_error(ERR_LEV_DEBUG,ERR_IMG,INFO_IMG_TAKE_PIC,writePic);
     
+    stat_pic_start();
+    
     //set image size
     Adafruit_VC0706_setImageSize(VC0706_640x480);
     //take the picture
@@ -78,6 +81,8 @@ int savepic(void){
     if(jpglen == 0){
         //no image in buffer, report error
         report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_PICSIZE, 0);
+        //clear in progress flag
+        stat_pic_abort();
         //return error
         return IMG_RET_ERR_PICSIZE;
     }
@@ -88,6 +93,8 @@ int savepic(void){
     if(block==NULL){
         //buffer is locked, report error
         report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_BUFFER_BUSY, 0);
+        //clear in progress flag
+        stat_pic_abort();
         //return error
         return IMG_RET_ERR_BUFFER_BUSY;
     }
@@ -140,6 +147,8 @@ int savepic(void){
                 report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READPIC,0);
                 //free buffer
                 BUS_free_buffer();
+                //clear in progress flag
+                stat_pic_abort();
                 //return error
                 return IMG_RET_ERR_READ_PIC_DAT;
             }
@@ -175,6 +184,8 @@ int savepic(void){
             report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_WRITE,resp);
             //free buffer
             BUS_free_buffer();
+            //clear in progress flag
+            stat_pic_abort();
             //error encountered, abort image store
             return ERR_IMG_SD_CARD_WRITE;
         }
@@ -183,6 +194,8 @@ int savepic(void){
     }
     //free buffer
     BUS_free_buffer();
+    //update status with picture number 
+    stat_pic_complete(Num);
     //SUCCESS!!
     return IMG_RET_SUCCESS;
 }

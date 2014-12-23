@@ -19,6 +19,8 @@
       <file file_name="LED.h"/>
       <file file_name="sensor.c"/>
       <file file_name="sensor.h"/>
+      <file file_name="status.c"/>
+      <file file_name="status.h"/>
     </folder>
     <folder Name="System Files" file_name="">
       <file file_name="$(StudioDir)/ctl/source/threads.js"/>

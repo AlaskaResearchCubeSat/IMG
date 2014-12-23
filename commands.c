@@ -15,6 +15,7 @@
 #include "Adafruit_VC0706.h"
 #include "sensor.h"
 #include "IMG.h"
+#include "status.h"
 
 //the tvOff command, turns the video out 'off'
 int tvOffCmd(char **argv, unsigned short argc){
