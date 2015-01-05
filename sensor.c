@@ -20,14 +20,14 @@ void sensor_init(void){
     Adafruit_VC0706_init();
 
     //setup P7.0 for imager on/off
-    // Set imager to off to start with (this will save power)
-    P7OUT&=BIT0;
+    // Set imager to off to start with
+    P7OUT&=~BIT0;
     //set pin direction to output
     P7DIR|=BIT0;
     //turn off pull resistor
-    P7REN&=BIT0;
+    P7REN&=~BIT0;
     //set pin as GPIO
-    P7SEL&=BIT0;
+    P7SEL&=~BIT0;
 }
 
 void sensor_on(void){
