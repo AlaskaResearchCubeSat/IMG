@@ -17,6 +17,8 @@
 #include "IMG.h"
 #include "status.h"
 
+int cmdPic=-1;
+
 //the tvOff command, turns the video out 'off'
 int tvOffCmd(char **argv, unsigned short argc){
     printf("Turning video off\r\n");
@@ -31,15 +33,20 @@ int tvOffCmd(char **argv, unsigned short argc){
 
 int savePicCmd(char **argv, unsigned short argc){
     int ret;
+    int slot;
     //turn the sensor on
     printf("Turning on sensor...\r\n");
     sensor_on();
+    //capture picture slot
+    slot=writePic;
     //take picture
     printf("Taking Picture please wait\r\n");
     ret=savepic();
     //check if picture saved correctly
     if(ret==IMG_RET_SUCCESS){
         printf("Image Stored Successfully\r\n");
+        //save picture slot
+        cmdPic=slot;
     }else{
         printf("Error taking picture\r\n");
     }
@@ -145,6 +152,8 @@ int takePicTask(char **argv,unsigned short argc)
        //print error message
        printf("Error timeout occoured\r\n");
    }
+   //set picture slot
+   cmdPic=writePic;
    return 0;
 }
 
@@ -156,8 +165,14 @@ int dumpPicTask(char **argv,unsigned short argc)
 }
 
 int picloc_Cmd(char **argv,unsigned short argc){
+    //check if cmdPic is valid
+    if(cmdPic<0){
+        //print error
+        printf("Error: no picture\r\n");
+        return -1;
+    }
     //savepic command always saves at IMG_ADDR_START
-    printf("%i\r\n",IMG_ADDR_START+IMG_SLOT_SIZE*writePic);
+    printf("%i\r\n",IMG_ADDR_START+IMG_SLOT_SIZE*cmdPic);
     //everything is always good
     return 0;
 }
