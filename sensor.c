@@ -316,9 +316,9 @@ int loadpic(void){
     }         
     //The correct block was found, transmit
     //set block type
-    buffer[1]=SPI_IMG_DAT;
+    buffer[0]=SPI_IMG_DAT;
     //set source address
-    buffer[0]=UCB0I2COA;
+    buffer[1]=UCB0I2COA;
     // Transmit this block across SPI
     resp = BUS_SPI_txrx(BUS_ADDR_COMM,buffer,NULL,sizeof(IMG_DAT) + 2);
     //check for errors
