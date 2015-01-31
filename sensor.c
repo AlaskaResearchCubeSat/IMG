@@ -224,96 +224,48 @@ int loadpic(void){
     }
     //address for imager data
     block=(IMG_DAT*)(buffer+2);
-    //locate image in memory
-    for(i = 0,found=0; i < NUM_IMG_SLOTS; i++){
-        //calculate address
-        imgStart=IMG_ADDR_START+i*IMG_SLOT_SIZE;
-        //read from SD card
-        resp=mmcReadBlock(imgStart,(unsigned char*)block);
-        if(resp==MMC_SUCCESS){
-            if(block->magic==BT_IMG_START){
-                //calculate CRC
-                check=crc16(block,sizeof(*block)-sizeof(block->CRC));
-                //check if CRC's match
-                if(check==block->CRC){
-                    //check if picture number matches
-                    if(block->num==readPic){
-                        //set found to be true
-                        found=1;
-                        //exit loop
-                        break;
-                    }
-                }
-            }
-        }else{
-            report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_READ,resp);
-            //done with buffer, free it
-            BUS_free_buffer();
-            //return error
-            return IMG_RET_ERR_SD_READ;
-        }
-    }
-    //check if picture was found
-    if(!found){
-        //not found, report error
-        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_PIC_NOT_FOUND,readPic);
+    //calculate address
+    imgStart=IMG_ADDR_START+readPic*IMG_SLOT_SIZE; 
+    //read from SD card
+    resp=mmcReadBlock(imgStart+readBlock,(unsigned char*)block);
+    //check for errors
+    if(resp != MMC_SUCCESS){
+        //report error
+        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_READ, resp);
         //done with buffer, free it
         BUS_free_buffer();
         //return error
-        return IMG_RET_ERR_PIC_NOT_FOUND;  
+        return IMG_RET_ERR_SD_READ;
+    }
+    //check if block type is correct
+    if(block->magic!=BT_IMG_BODY){
+        //report error
+        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READ_BLOCK_ID,block->magic);
+        //done with buffer, free it
+        BUS_free_buffer();
+        //return error
+        return IMG_RET_BAD_BLK_HEADER;
+    }
+    //calculate CRC
+    check=crc16(block,sizeof(*block)-sizeof(block->CRC));
+    //check if CRC's match
+    if(check!=block->CRC){
+        //bad CRC, report error
+        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READ_INVALID_CRC,block->CRC);
+        //done with buffer, free it
+        BUS_free_buffer();
+        //return error
+        return IMG_RET_BAD_CRC;
     }
     //check block number
-    if(readBlock>=block->block){
-        //not found, report error
-        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_INVALID_BLOCK_NUM,(0x00FF&readBlock)|(readPic<<8));
+    if(readBlock!=block->block){
+        //report error
+        report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READ_BLOCK_NUM_MISMATCH,((unsigned short)block->block)|(readBlock<<8));
         //done with buffer, free it
         BUS_free_buffer();
         //return error
-        return IMG_RET_ERR_INVALID_BLOCK_NUM;  
-    }   
-    //first block already read so no reason to read it again
-    if(readBlock!=0){
-        //read from SD card
-        resp=mmcReadBlock(imgStart+readBlock,(unsigned char*)block);
-        //check for errors
-        if(resp != MMC_SUCCESS){
-            //report error
-            report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_SD_CARD_READ, resp);
-            //done with buffer, free it
-            BUS_free_buffer();
-            //return error
-            return IMG_RET_ERR_SD_READ;
-        }
-        //check if block type is correct
-        if(block->magic!=BT_IMG_BODY){
-            //report error
-            report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READ_BLOCK_ID,block->magic);
-            //done with buffer, free it
-            BUS_free_buffer();
-            //return error
-            return IMG_RET_BAD_BLK_HEADER;
-        }
-        //calculate CRC
-        check=crc16(block,sizeof(*block)-sizeof(block->CRC));
-        //check if CRC's match
-        if(check!=block->CRC){
-            //bad CRC, report error
-            report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READ_INVALID_CRC,block->CRC);
-            //done with buffer, free it
-            BUS_free_buffer();
-            //return error
-            return IMG_RET_BAD_CRC;
-        }
-        //check block number
-        if(readBlock!=block->block){
-            //report error
-            report_error(ERR_LEV_ERROR,ERR_IMG,ERR_IMG_READ_BLOCK_NUM_MISMATCH,((unsigned short)block->block)|(readBlock<<8));
-            //done with buffer, free it
-            BUS_free_buffer();
-            //return error
-            return IMG_RET_READ_BLOCK_NUM_MISMATCH;
-        }
-    }         
+        return IMG_RET_READ_BLOCK_NUM_MISMATCH;
+    }        
     //The correct block was found, transmit
     //set block type
     buffer[0]=SPI_IMG_DAT;
