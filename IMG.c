@@ -73,6 +73,13 @@ int SUB_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned
 
       //Return Success
       return RET_SUCCESS;
+      case CMD_IMG_CLEARPIC:
+        if(len!=0){
+          return ERR_PK_LEN;
+        }
+        //free the picture alarm
+        BUS_free_alarm(BUS_ALARM_0);
+      return RET_SUCCESS;
   }
   //Return Error
   return ERR_UNKNOWN_CMD;
