@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <msp430.h>
-#include <ctl_api.h>
+#include <ctl.h>
 #include <terminal.h>
 #include <ARCbus.h>
 #include <UCA1_uart.h>

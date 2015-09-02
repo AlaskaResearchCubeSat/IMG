@@ -6,8 +6,8 @@
 *.asv
 
 #build directories
-MSP430 Debug/
-MSP430 Release/
+Imager MSP430 Debug/
+Imager MSP430 Release/
 
 #Matlab directory
 Matlab/*.jpg
