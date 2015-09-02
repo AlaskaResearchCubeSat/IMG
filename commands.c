@@ -143,6 +143,9 @@ int versionCmd(char **argv, unsigned short argc){
 int takePicTask(char **argv,unsigned short argc)
 {
    unsigned short e;
+   int tmp;
+   //get the slot where the picture wil be written
+   tmp=writePic;
    //Trigger the takepic event and clear pic taken event
    ctl_events_set_clear(&IMG_events, IMG_EV_TAKEPIC,IMG_EV_PIC_TAKEN);
    //wait for picture to complete, set a timeout of 15 sec
@@ -153,7 +156,7 @@ int takePicTask(char **argv,unsigned short argc)
        printf("Error timeout occoured\r\n");
    }
    //set picture slot
-   cmdPic=writePic;
+   cmdPic=tmp;
    return 0;
 }
 
